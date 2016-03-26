@@ -9,7 +9,7 @@ FileProcessing::~FileProcessing()
 {
 }
 
-bool 
+bool
 FileProcessing::loadCloud(const string & filename, PCLPointCloud2 & cloud)
 {
 	TicToc tt;
@@ -28,7 +28,7 @@ FileProcessing::loadCloud(const string & filename, PCLPointCloud2 & cloud)
 	return (true);
 }
 
-void 
+void
 FileProcessing::saveCloud(const string & filename, const PCLPointCloud2 & cloud, bool binary, bool use_camera)
 {
 	TicToc tt;
@@ -44,4 +44,22 @@ FileProcessing::saveCloud(const string & filename, const PCLPointCloud2 & cloud,
 	print_value("%g", tt.toc()); print_info(" ms : ");
 	print_value("%d", cloud.width * cloud.height);
 	print_info(" points]\n");
+}
+
+
+void
+FileProcessing::makePLYFromPointCloudSet(const string &filename, const PCLPointCloud2 &cloud, bool binary, bool use_camera, vector<MyPointCloud> *set)
+{
+	string file;
+	vector<MyPointCloud>::size_type j;
+	PCLPointCloud2 pcl2;
+	int i;
+
+	for (j = 0, i = 0; j != set->size(); j++, i++)
+	{
+		file = filename;
+		file += to_string(i) + ".ply";
+		toPCLPointCloud2((*set)[j], pcl2);
+		saveCloud(file, pcl2, binary, use_camera);
+	}
 }
