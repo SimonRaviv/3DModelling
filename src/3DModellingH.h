@@ -13,7 +13,7 @@
 #include <pcl/compression/octree_pointcloud_compression.h>
 #include <pcl/filters/extract_indices.h>
 #include <pcl/segmentation/sac_segmentation.h>
-
+#include <pcl/registration/icp.h>
 #include <stdio.h>
 #include <sstream>
 #include <stdlib.h>
