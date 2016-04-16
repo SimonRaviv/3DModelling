@@ -48,16 +48,16 @@ FileProcessing::saveCloud(const string & filename, const PCLPointCloud2 & cloud,
 
 
 void
-FileProcessing::makePLYFromPointCloudSet(const string &filename, const PCLPointCloud2 &cloud, bool binary, bool use_camera, vector<MyPointCloud> *set)
+FileProcessing::makePLYFromPointCloudSet(const string &filename, const PCLPointCloud2 &cloud, bool binary, bool use_camera, vector<PointCloudT> *set)
 {
 	string file;
-	vector<MyPointCloud>::size_type j;
+	vector<PointCloudT>::size_type j;
 	PCLPointCloud2 pcl2, PC1, PC2, r;
 	int i;
-	PointCloudPtr cloud_in(new MyPointCloud);
-	PointCloudPtr cloud_out(new MyPointCloud);
+	PointCloudPtr cloud_in(new PointCloudT);
+	PointCloudPtr cloud_out(new PointCloudT);
 	IterativeClosestPoint<PointT, PointT> icp;
-	MyPointCloud Final;
+	PointCloudT Final;
 	//toPCLPointCloud2((*set)[15], PC2);
 	//const pcl::PCLPointCloud2 &cloud1
 	// compress point cloud

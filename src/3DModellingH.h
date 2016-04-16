@@ -25,7 +25,7 @@ using namespace pcl::console;
 using namespace std;
 
 typedef pcl::PointXYZRGBA PointT;
-typedef pcl::PointCloud<PointT> MyPointCloud;
+typedef pcl::PointCloud<PointT> PointCloudT;
 typedef pcl::PointCloud<PointT>::Ptr PointCloudPtr;
 typedef const pcl::PointCloud<PointT>::ConstPtr PointCloudConstPtr;
 typedef pcl::PCLPointCloud2ConstPtr PointCloudConstPtr2;
