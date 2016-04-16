@@ -26,47 +26,84 @@
 //main(int argc,
 //	char* argv[])
 //{
-//	vector<PointCloudT::Ptr> clouds;
-//	vector<PointCloudT::Ptr>::iterator it;
+//	vector<PointCloudT> clouds;
+//	vector<PointCloudT>::iterator it;
 //	it = clouds.begin();
 //	PointCloudT::Ptr cloud_source_registered(new PointCloudT);
 //	PointCloudT::Ptr cloud(new PointCloudT);
+//	PointCloudT::Ptr cloud_in(new PointCloudT);
+//	PointCloudT::Ptr cloud_out(new PointCloudT);
+//	PointCloudT::Ptr cloud2(new PointCloudT);
 //	PointCloudT::Ptr result(new PointCloudT);
 //	pcl::IterativeClosestPoint<PointT, PointT> icp;
 //	string file_name;
 //
-//	for (size_t i = 0; i < 19; i++)
-//	{
-//		file_name = "C:\\3DModelling\\Build\\PointCloud" + std::to_string(i) + ".ply";
-//		pcl::io::loadPLYFile<PointT>(file_name, *cloud);
-//		it = clouds.insert(it, cloud);
-//	}
-//
+//	//for (size_t i = 15; i < 30; i++)
+//	//{
+//	//	file_name = "C:\\Users\\lions\\Desktop\\PLYfiles\\file" + std::to_string(i) + ".ply";
+//	//	pcl::io::loadPLYFile<PointT>(file_name, *cloud);
+//	//	it = clouds.insert(it, cloud);
+//	//}
+//	//file_name = "C:\\Users\\lions\\Desktop\\PLYfiles\\PointCloud3.ply";
+//	//pcl::io::loadPLYFile<PointT>(file_name, *cloud);
+//	//it = clouds.insert(it, *cloud);
+//	//*result += *cloud;
+//	file_name = "C:\\Users\\lions\\Desktop\\PLYfiles\\file32.ply";
+//	pcl::io::loadPLYFile<PointT>(file_name, *cloud);
+//	it = clouds.insert(it, *cloud);
 //	cout << "Data loaded" << endl;
+//	file_name = "C:\\Users\\lions\\Desktop\\PLYfiles\\file33.ply";
+//	pcl::io::loadPLYFile<PointT>(file_name, *cloud);
+//	it = clouds.insert(it, *cloud);
+//	cout << "Data loaded" << endl;
+//	//*result += *cloud;
 //
-//	*result += *clouds.at(0);
+//	//*result = (clouds.at(0)) + (clouds.at(1));
+//	*result += clouds.at(0);
 //
-//	for (size_t i = 0; i < 15; i++)
-//	{
+//	//for (size_t i = 0; i < 6; i++)
+//	//{
+//		*cloud_in = clouds.at(1);
+//		*cloud_out = clouds.at(0);
 //		// Set the input source and target
-//		icp.setInputCloud(clouds.at(i));
-//		icp.setInputTarget(clouds.at(i + 1));
+//		icp.setInputCloud(cloud_in);
+//		icp.setInputTarget(cloud_out);
 //		// Set the max correspondence distance to 5cm (e.g., correspondences with higher distances will be ignored)
 //		icp.setMaxCorrespondenceDistance(0.05);
 //		// Set the maximum number of iterations (criterion 1)
-//		icp.setMaximumIterations(50);
+//		//icp.setMaximumIterations(50);
 //		// Set the transformation epsilon (criterion 2)
-//		icp.setTransformationEpsilon(1e-8);
+//		icp.setTransformationEpsilon(1e-10);
 //		// Set the euclidean distance difference epsilon (criterion 3)
-//		icp.setEuclideanFitnessEpsilon(1);
+//		icp.setEuclideanFitnessEpsilon(0.0002);
 //		// Perform the alignment
 //		icp.align(*cloud_source_registered);
 //
-//		cout << "ICP " << i << "done !" << endl;
+//		cout << "ICP " << "" << "done !" << endl;
+//		cout << icp.hasConverged() << endl;
 //		*result += *cloud_source_registered;
 //
-//	}
-//	pcl::io::savePLYFile("C:\\3DModelling\\Build\\Final.ply", *result);
+//		//*cloud_in = clouds.at(2);
+//		//*cloud_out = clouds.at(1);
+//		//// Set the input source and target
+//		//icp.setInputCloud(cloud_in);
+//		//icp.setInputTarget(cloud_out);
+//		//// Set the max correspondence distance to 5cm (e.g., correspondences with higher distances will be ignored)
+//		//icp.setMaxCorrespondenceDistance(0.05);
+//		//// Set the maximum number of iterations (criterion 1)
+//		//icp.setMaximumIterations(50);
+//		//// Set the transformation epsilon (criterion 2)
+//		//icp.setTransformationEpsilon(1e-8);
+//		//// Set the euclidean distance difference epsilon (criterion 3)
+//		//icp.setEuclideanFitnessEpsilon(1);
+//		//// Perform the alignment
+//		//icp.align(*cloud_source_registered);
+//
+//		//cout << "ICP " << "" << "done !" << endl;
+//		//*result += *cloud_source_registered;
+//	//}
+//
+//	pcl::io::savePLYFile("C:\\Users\\lions\\Desktop\\Final.ply", *result);
 //
 //	cout << "File saved !" << endl;
 //
