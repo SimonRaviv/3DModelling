@@ -4,8 +4,8 @@
 class PointCloudSet
 {
 public:
-	vector<MyPointCloud> set;
-	vector<MyPointCloud>::iterator it;
+	vector<PointCloudT> set;
+	vector<PointCloudT>::iterator it;
 
 	PointCloudSet();
 
@@ -53,9 +53,9 @@ public:
 	void cloud_cb_(PointCloudConstPtr &cloud)
 	{
 
-		PointCloudPtr cloud_out(new MyPointCloud);
+		PointCloudPtr cloud_out(new PointCloudT);
 		std::vector<int> mapping;
-		PointCloudPtr cloud_in(new MyPointCloud);
+		PointCloudPtr cloud_in(new PointCloudT);
 		copyPointCloud(*cloud, *cloud_in);
 		pcl::removeNaNFromPointCloud(*cloud_in, *cloud_out, mapping);
 		this->point_cloud_list.it = this->point_cloud_list.set.insert(this->point_cloud_list.it, *cloud_out);
@@ -87,7 +87,7 @@ int main()
 	SimpleOpenNIViewer v;
 	v.run();
 	
-	vector<MyPointCloud>::size_type j;
+	vector<PointCloudT>::size_type j;
 	PCLPointCloud2 pcl2;
 	bool format = true;
 	bool use_camera = true;
