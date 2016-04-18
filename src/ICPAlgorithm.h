@@ -13,8 +13,8 @@ public:
 	void rigid_transform_3D(const PointCloudT &cloud_src, const PointCloudT &cloud_tgt, Matrix4f &transformation);
 	//void find_nearest_neighbors(const PointCloudT &pc_a, const PointCloudT &pc_b, PointCloudT &p, PointCloudT &q);
 	void save_point_cloud(const string & filename, const PointCloudT &cloud);
-	//void extractRigidTransform(const Matrix4f &m, Matrix3f &r, Vector3f &t);
-	void getRigidTransform(const Matrix3f & r, const Vector3f & t, Matrix4f &transformation);
+	void extract_rotation_and_translation(const Matrix4f &m, Matrix3f &r, Vector3f &transformation);
+	void get_transform_matrix(const Matrix3f & r, const Vector3f & t, Matrix4f &transformation);
 	void get_random_points(const PointCloudT &cloud_in, PointCloudT &subsample, double probability);
 	void subtract_centroid(const PointCloudT &cloud_in, const Vector4f &centroid, MatrixXf &cloud_out);
 	void compute_centroid(const PointCloudT &cloud, Vector4f &centroid);

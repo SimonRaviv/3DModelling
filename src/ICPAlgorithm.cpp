@@ -138,7 +138,13 @@ void ICPAlgorithm::save_point_cloud(const string & filename, const PointCloudT &
 	print_info(" points]\n");
 }
 
-void ICPAlgorithm::getRigidTransform(const Matrix3f & r, const Vector3f & t, Matrix4f &transformation)
+void ICPAlgorithm::extract_rotation_and_translation(const Matrix4f & transformation, Matrix3f & r, Vector3f & t)
+{
+	r= transformation.block<3, 3>(0, 0) ;
+	t= transformation.block<3, 1>(0, 3) ;
+}
+
+void ICPAlgorithm::get_transform_matrix(const Matrix3f & r, const Vector3f & t, Matrix4f &transformation)
 {
 	transformation.setIdentity();   // Set to Identity to make bottom row of Matrix 0,0,0,1
 	transformation.block<3, 3>(0, 0) = r;
@@ -179,6 +185,7 @@ void ICPAlgorithm::get_random_points(const PointCloudT & cloud_in, PointCloudT &
 	subsample.height = 1;
 	subsample.width = j;
 }
+
 void ICPAlgorithm::subtract_centroid(const PointCloudT &cloud_in, const Vector4f &centroid, MatrixXf &cloud_out)
 {
 	size_t points_number = cloud_in.points.size();
@@ -192,6 +199,7 @@ void ICPAlgorithm::subtract_centroid(const PointCloudT &cloud_in, const Vector4f
 	// Make sure we zero the 4th dimension out (1 row, N columns)
 	cloud_out.block(3, 0, 1, points_number).setZero();
 }
+
 void ICPAlgorithm::compute_centroid(const PointCloudT &cloud, Vector4f &centroid)
 {
 	// Initialize to 0
