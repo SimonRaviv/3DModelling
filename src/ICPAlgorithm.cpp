@@ -7,7 +7,7 @@ ICPAlgorithm::ICPAlgorithm()
 ICPAlgorithm::~ICPAlgorithm()
 {
 }
-
+//TODO:
 void ICPAlgorithm::Register(vector<PointCloudT> &clouds, int FrameNumber)
 {
 
@@ -59,6 +59,7 @@ void ICPAlgorithm::Register(vector<PointCloudT> &clouds, int FrameNumber)
 	cout << transformation << endl;
 }
 
+//checked!
 void ICPAlgorithm::transform_pointcloud(const PointCloudT & cloud_in, PointCloudT & cloud_out, const Matrix4f & transform)
 {
 	// If the clouds are not the same, prepare the output
@@ -73,12 +74,13 @@ void ICPAlgorithm::transform_pointcloud(const PointCloudT & cloud_in, PointCloud
 	}
 
 	Matrix3f rot = transform.block<3, 3>(0, 0);
+	//rot = rot.transpose();
 	Vector3f trans = transform.block<3, 1>(0, 3);
 
 	for (size_t i = 0; i < cloud_out.points.size(); ++i)
 		cloud_out.points[i].getVector3fMap() = rot * cloud_in.points[i].getVector3fMap() + trans;
 }
-
+//checked!
 void ICPAlgorithm::rigid_transform_3D(const PointCloudT & cloud_src, const PointCloudT & cloud_tgt, Matrix4f & transformation)
 {
 	// <cloud_src,cloud_src> is the source dataset
@@ -119,7 +121,7 @@ void ICPAlgorithm::rigid_transform_3D(const PointCloudT & cloud_src, const Point
 	//The translation matrix : 𝑡 =  𝑐𝑒𝑛𝑡𝑟𝑜𝑖𝑑_(𝑃^∗)− 𝑅∗𝑐𝑒𝑛𝑡𝑟𝑜𝑖𝑑_𝑄.
 	transformation.block <3, 1>(0, 3) = centroid_tgt.head<3>() - Rc;
 }
-
+//checked!
 void ICPAlgorithm::find_nearest_neighbors(const PointCloudT & prev_frame, const PointCloudT & curr_frame, PointCloudT & p, PointCloudT & q)
 {
 	KdTreeFLANN<PointT> kdtree;
@@ -208,7 +210,7 @@ void ICPAlgorithm::find_nearest_neighbors(const PointCloudT & prev_frame, const 
 	}
 
 }
-
+//checked!
 void ICPAlgorithm::save_point_cloud(const string & filename, const PointCloudT &cloud)
 {
 	TicToc tt;
@@ -219,13 +221,13 @@ void ICPAlgorithm::save_point_cloud(const string & filename, const PointCloudT &
 	print_value("%d", cloud.width * cloud.height);
 	print_info(" points]\n");
 }
-
+//checked!
 void ICPAlgorithm::extract_rotation_and_translation(const Matrix4f & transformation, Matrix3f & r, Vector3f & t)
 {
 	r= transformation.block<3, 3>(0, 0) ;
 	t= transformation.block<3, 1>(0, 3) ;
 }
-
+//checked!
 void ICPAlgorithm::get_transform_matrix(const Matrix3f & r, const Vector3f & t, Matrix4f &transformation)
 {
 	transformation.setIdentity();   // Set to Identity to make bottom row of Matrix 0,0,0,1
@@ -233,7 +235,7 @@ void ICPAlgorithm::get_transform_matrix(const Matrix3f & r, const Vector3f & t, 
 	transformation.block<3, 1>(0, 3) = t;
 	//transformation.rightCols<1>() = t;
 }
-
+//checked!
 void ICPAlgorithm::get_random_points(const PointCloudT & cloud_in, PointCloudT & subsample, double probability)
 {
 	std::vector<int> index;
@@ -267,7 +269,7 @@ void ICPAlgorithm::get_random_points(const PointCloudT & cloud_in, PointCloudT &
 	subsample.height = 1;
 	subsample.width = j;
 }
-
+//checked!
 void ICPAlgorithm::subtract_centroid(const PointCloudT &cloud_in, const Vector4f &centroid, MatrixXf &cloud_out)
 {
 	size_t points_number = cloud_in.points.size();
@@ -281,7 +283,7 @@ void ICPAlgorithm::subtract_centroid(const PointCloudT &cloud_in, const Vector4f
 	// Make sure we zero the 4th dimension out (1 row, N columns)
 	cloud_out.block(3, 0, 1, points_number).setZero();
 }
-
+//checked!
 void ICPAlgorithm::compute_centroid(const PointCloudT &cloud, Vector4f &centroid)
 {
 	// Initialize to 0

@@ -84,8 +84,8 @@ public:
 
 int main()
 {
-	SimpleOpenNIViewer v;
-	v.run();
+	//SimpleOpenNIViewer v;
+	//v.run();
 	
 	vector<PointCloudT>::size_type j;
 	PCLPointCloud2 pcl2;
@@ -96,8 +96,39 @@ int main()
 
 	//for (j = 0; j != v.point_cloud_list.set.size(); j++)
 	//pcl::io::savePLYFile("file" + std::to_string(j) + ".ply", v.point_cloud_list.set[j]);
+	srand(time(NULL));
 
+	pcl::PointCloud<PointT>::Ptr cloud(new pcl::PointCloud<PointT>);
+	// Generate pointcloud data
+	cloud->width = 100;
+	cloud->height = 1;
+	cloud->points.resize(cloud->width * cloud->height);
 
-	v.icp_Alg.Register(v.point_cloud_list.set,v.frameNumber);
+	for (size_t i = 0; i < cloud->points.size(); ++i)
+	{
+		cloud->points[i].x = (1024* rand() / (RAND_MAX + 1))%30;
+		cloud->points[i].y = (1024 * rand() / (RAND_MAX + 1)) % 30;
+		cloud->points[i].z = (1024 * rand() / (RAND_MAX + 1)) % 30;
+		cloud->points[i].rgba = 0;
+	}
+
+	PointCloudPtr p(new PointCloudT);
+	ICPAlgorithm icp_Alg;
+	
+		// executing the transformation
+		for (size_t i = 0; i < cloud->points.size(); i++)
+		{
+			cout << cloud->points[i] << endl;
+		}
+		cout << "random points:" << endl;
+		icp_Alg.get_random_points(*cloud, *p, 0.3);
+		for (size_t i = 0; i < p->points.size(); i++)
+		{
+			cout << p->points[i] << endl;
+		}
+		
+
+	
+	//v.icp_Alg.Register(v.point_cloud_list.set,v.frameNumber);
 	return 0;
 }
