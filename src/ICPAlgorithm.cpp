@@ -131,19 +131,80 @@ void ICPAlgorithm::find_nearest_neighbors(const PointCloudT & prev_frame, const 
 	vector<float> pointNKNSquaredDistance(K);
 	*prev = prev_frame;
 	*curr = curr_frame;
-	
-	vector<PointT>::iterator itq,itp;
-	itp = curr->points.begin();
-	itq = curr->points.begin();
-	kdtree.setInputCloud(prev);
 
-	for (size_t i = 0; i < curr_frame.points.size(); ++i)
+	
+	if (prev_frame.points.size() < curr_frame.points.size())
 	{
-		search_point = curr->points[i];
-		itq = q.points.insert(itq, search_point);
+		kdtree.setInputCloud(curr);
+
+	if (&p != &prev_frame && &q != &curr_frame)
+	{
+
+		p.header = prev_frame.header;
+		p.width = prev_frame.width;
+		p.height = prev_frame.height;
+		p.is_dense = prev_frame.is_dense;
+		p.points.reserve(p.points.size());
+		p.points.assign(prev_frame.points.begin(), prev_frame.points.end());
+		q.header = prev_frame.header;
+		q.width = prev_frame.width;
+		q.height = prev_frame.height;
+		q.is_dense = prev_frame.is_dense;
+		q.points.reserve(q.points.size());
+		q.points.assign(prev_frame.points.begin(), prev_frame.points.end());
+	}
+
+
+	for (size_t i = 0; i < prev_frame.points.size(); ++i)
+	{
+		search_point = prev->points[i];
+		p.points[i].x = search_point.x;
+		p.points[i].y = search_point.y;
+		p.points[i].z = search_point.z;
+
 		kdtree.nearestKSearch(search_point, K, pointIdxNKNSearch, pointNKNSquaredDistance);
-		matched_point = prev->points[pointIdxNKNSearch[0]];
-		itp = p.points.insert(itp, matched_point);
+		matched_point = curr->points[pointIdxNKNSearch[0]];
+		q.points[i].x = matched_point.x;
+		q.points[i].y = matched_point.y;
+		q.points[i].z = matched_point.z;
+
+	}
+	}
+	else 
+	{
+		kdtree.setInputCloud(prev);
+		if (&p != &prev_frame && &q != &curr_frame)
+		{
+
+			p.header = curr_frame.header;
+			p.width = curr_frame.width;
+			p.height = curr_frame.height;
+			p.is_dense = curr_frame.is_dense;
+			p.points.reserve(p.points.size());
+			p.points.assign(curr_frame.points.begin(), curr_frame.points.end());
+			q.header = curr_frame.header;
+			q.width = curr_frame.width;
+			q.height = curr_frame.height;
+			q.is_dense = curr_frame.is_dense;
+			q.points.reserve(q.points.size());
+			q.points.assign(curr_frame.points.begin(), curr_frame.points.end());
+		}
+
+
+		for (size_t i = 0; i < curr_frame.points.size(); ++i)
+		{
+			search_point = curr->points[i];
+			q.points[i].x = search_point.x;
+			q.points[i].y = search_point.y;
+			q.points[i].z = search_point.z;
+
+			kdtree.nearestKSearch(search_point, K, pointIdxNKNSearch, pointNKNSquaredDistance);
+			matched_point = prev->points[pointIdxNKNSearch[0]];
+			p.points[i].x = matched_point.x;
+			p.points[i].y = matched_point.y;
+			p.points[i].z = matched_point.z;
+
+		}
 	}
 
 }
