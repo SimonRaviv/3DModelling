@@ -27,6 +27,7 @@ using namespace pcl::console;
 using namespace Eigen;
 using namespace std;
 
+
 typedef pcl::PointXYZRGBA PointT;
 typedef pcl::PointCloud<PointT> PointCloudT;
 typedef pcl::PointCloud<PointT>::Ptr PointCloudPtr;

@@ -1,12 +1,5 @@
 ﻿#include "ICPAlgorithm.h"
 
-
-using std::cout;
-using std::endl;
-
-using namespace std;
-
-
 ICPAlgorithm::ICPAlgorithm()
 {
 }
@@ -125,6 +118,34 @@ void ICPAlgorithm::rigid_transform_3D(const PointCloudT & cloud_src, const Point
 	Vector3f Rc = R * centroid_src.head<3>();
 	//The translation matrix : 𝑡 =  𝑐𝑒𝑛𝑡𝑟𝑜𝑖𝑑_(𝑃^∗)− 𝑅∗𝑐𝑒𝑛𝑡𝑟𝑜𝑖𝑑_𝑄.
 	transformation.block <3, 1>(0, 3) = centroid_tgt.head<3>() - Rc;
+}
+
+void ICPAlgorithm::find_nearest_neighbors(const PointCloudT & prev_frame, const PointCloudT & curr_frame, PointCloudT & p, PointCloudT & q)
+{
+	KdTreeFLANN<PointT> kdtree;
+	PointCloudPtr prev(new PointCloudT);
+	PointCloudPtr curr(new PointCloudT);
+	PointT search_point,matched_point;
+	int K = 1;
+	vector<int> pointIdxNKNSearch(K);
+	vector<float> pointNKNSquaredDistance(K);
+	*prev = prev_frame;
+	*curr = curr_frame;
+	
+	vector<PointT>::iterator itq,itp;
+	itp = curr->points.begin();
+	itq = curr->points.begin();
+	kdtree.setInputCloud(prev);
+
+	for (size_t i = 0; i < curr_frame.points.size(); ++i)
+	{
+		search_point = curr->points[i];
+		itq = q.points.insert(itq, search_point);
+		kdtree.nearestKSearch(search_point, K, pointIdxNKNSearch, pointNKNSquaredDistance);
+		matched_point = prev->points[pointIdxNKNSearch[0]];
+		itp = p.points.insert(itp, matched_point);
+	}
+
 }
 
 void ICPAlgorithm::save_point_cloud(const string & filename, const PointCloudT &cloud)

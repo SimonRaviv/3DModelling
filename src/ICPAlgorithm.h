@@ -11,7 +11,7 @@ public:
 	void Register(vector<PointCloudT> &set, int FrameNumber);
 	void transform_pointcloud(const PointCloudT &cloud_in, PointCloudT &cloud_out, const Matrix4f &transform);
 	void rigid_transform_3D(const PointCloudT &cloud_src, const PointCloudT &cloud_tgt, Matrix4f &transformation);
-	//void find_nearest_neighbors(const PointCloudT &pc_a, const PointCloudT &pc_b, PointCloudT &p, PointCloudT &q);
+	void find_nearest_neighbors(const PointCloudT &pc_a, const PointCloudT &pc_b, PointCloudT &p, PointCloudT &q);
 	void save_point_cloud(const string & filename, const PointCloudT &cloud);
 	void extract_rotation_and_translation(const Matrix4f &m, Matrix3f &r, Vector3f &transformation);
 	void get_transform_matrix(const Matrix3f & r, const Vector3f & t, Matrix4f &transformation);
