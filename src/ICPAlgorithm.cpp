@@ -91,13 +91,14 @@ void ICPAlgorithm::aligning_two_pointcloud(const PointCloudT & src, const PointC
 
 				// Find the optimal rotation and translation matrix to transform b onto a
 			Matrix4f transformPtoQ;
-			rigid_transform_3D(*p, *q, transformPtoQ);
-
+			rigid_transform_3D(*q, *p, transformPtoQ);
+			cout << transformPtoQ << endl;
 			// Apply the rigid transformation to the b point cloud
 
 			transform_pointcloud(*sub_source, *sub_source, transformPtoQ);
 			transform_pointcloud(*temp_source, *temp_source, transformPtoQ);
 			transform *= transformPtoQ;
+
 		}
 
 		// Combine the two point clouds and save to disk
@@ -132,7 +133,6 @@ void ICPAlgorithm::transform_pointcloud(const PointCloudT & cloud_in, PointCloud
 	}
 
 	Matrix3f rot = transform.block<3, 3>(0, 0);
-	//rot = rot.transpose();
 	Vector3f trans = transform.block<3, 1>(0, 3);
 
 	for (size_t i = 0; i < cloud_out.points.size(); ++i)

@@ -114,15 +114,22 @@ int main()
 		cloud->points[i].y = (1024 * rand() / (RAND_MAX + 1)) % 30;
 		cloud->points[i].z = (1024 * rand() / (RAND_MAX + 1)) % 30;
 		cloud->points[i].rgba = 0;
-		cloud2->points[i].x = (1024 * rand() / (RAND_MAX + 1)) % 30;
-		cloud2->points[i].y = (1024 * rand() / (RAND_MAX + 1)) % 30;
-		cloud2->points[i].z = (1024 * rand() / (RAND_MAX + 1)) % 30;
-		cloud2->points[i].rgba = 0;
 	}
-
+	Matrix4f transformation_matrix = Matrix4f::Identity();
+		double theta = M_PI / 8;  // The angle of rotation in radians
+		transformation_matrix(0, 0) = 7.5*cos(theta);
+		transformation_matrix(0, 1) = -0.5*sin(theta);
+		transformation_matrix(1, 0) = 12*sin(theta);
+		transformation_matrix(1, 1) = 3.5*cos(theta);
+	
+		// A translation on Z axis (0.4 meters)
+		transformation_matrix(2, 3) = 0.4;
+	
+		// Display in terminal the transformation matrix
 	PointCloudPtr p(new PointCloudT);
 	ICPAlgorithm icp_Alg;
-	
+	std::cout << "Applying this rigid transformation to: cloud_in -> cloud_icp" << std::endl;
+	icp_Alg.transform_pointcloud(*cloud, *cloud2, transformation_matrix);
 		
 		cout << "start icp:" << endl;
 		for (int i = 0; i < cloud->points.size(); i++)
@@ -134,14 +141,13 @@ int main()
 			cout << cloud2->points[i] << endl;
 		}
 		
-		icp_Alg.aligning_two_pointcloud(*cloud, *cloud2, *p, 10, 1);
+		icp_Alg.aligning_two_pointcloud(*cloud, *cloud2, *p, 5, 1);
 		cout << "finished!!!" << endl;
+		cout << "aligned points:" << endl;
 		for (int i = 0; i < p->points.size(); i++)
 		{
 			cout << p->points[i] << endl;
 		}
-		
-
 	
 	//v.icp_Alg.Register(v.point_cloud_list.set,v.frameNumber);
 	return 0;
