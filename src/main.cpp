@@ -99,10 +99,14 @@ int main()
 	srand(time(NULL));
 
 	pcl::PointCloud<PointT>::Ptr cloud(new pcl::PointCloud<PointT>);
+	pcl::PointCloud<PointT>::Ptr cloud2(new pcl::PointCloud<PointT>);
 	// Generate pointcloud data
-	cloud->width = 100;
+	cloud->width = 5;
 	cloud->height = 1;
 	cloud->points.resize(cloud->width * cloud->height);
+	cloud2->width = 5;
+	cloud2->height = 1;
+	cloud2->points.resize(cloud2->width * cloud2->height);
 
 	for (size_t i = 0; i < cloud->points.size(); ++i)
 	{
@@ -110,19 +114,29 @@ int main()
 		cloud->points[i].y = (1024 * rand() / (RAND_MAX + 1)) % 30;
 		cloud->points[i].z = (1024 * rand() / (RAND_MAX + 1)) % 30;
 		cloud->points[i].rgba = 0;
+		cloud2->points[i].x = (1024 * rand() / (RAND_MAX + 1)) % 30;
+		cloud2->points[i].y = (1024 * rand() / (RAND_MAX + 1)) % 30;
+		cloud2->points[i].z = (1024 * rand() / (RAND_MAX + 1)) % 30;
+		cloud2->points[i].rgba = 0;
 	}
 
 	PointCloudPtr p(new PointCloudT);
 	ICPAlgorithm icp_Alg;
 	
-		// executing the transformation
-		for (size_t i = 0; i < cloud->points.size(); i++)
+		
+		cout << "start icp:" << endl;
+		for (int i = 0; i < cloud->points.size(); i++)
 		{
 			cout << cloud->points[i] << endl;
 		}
-		cout << "random points:" << endl;
-		icp_Alg.get_random_points(*cloud, *p, 0.3);
-		for (size_t i = 0; i < p->points.size(); i++)
+		for (int i = 0; i < cloud2->points.size(); i++)
+		{
+			cout << cloud2->points[i] << endl;
+		}
+		
+		icp_Alg.aligning_two_pointcloud(*cloud, *cloud2, *p, 10, 1);
+		cout << "finished!!!" << endl;
+		for (int i = 0; i < p->points.size(); i++)
 		{
 			cout << p->points[i] << endl;
 		}

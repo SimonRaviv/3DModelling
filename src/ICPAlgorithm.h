@@ -9,6 +9,7 @@ public:
 	ICPAlgorithm();
 	~ICPAlgorithm();
 	void Register(vector<PointCloudT> &set, int FrameNumber);
+	void aligning_two_pointcloud(const PointCloudT &src, const PointCloudT &tgt, PointCloudT &aligned, int iteration, double probability);
 	void transform_pointcloud(const PointCloudT &cloud_in, PointCloudT &cloud_out, const Matrix4f &transform);
 	void rigid_transform_3D(const PointCloudT &cloud_src, const PointCloudT &cloud_tgt, Matrix4f &transformation);
 	void find_nearest_neighbors(const PointCloudT &pc_a, const PointCloudT &pc_b, PointCloudT &p, PointCloudT &q);

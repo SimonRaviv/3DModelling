@@ -59,6 +59,64 @@ void ICPAlgorithm::Register(vector<PointCloudT> &clouds, int FrameNumber)
 	cout << transformation << endl;
 }
 
+void ICPAlgorithm::aligning_two_pointcloud(const PointCloudT & src, const PointCloudT & tgt, PointCloudT & aligned,int iteration, double probability)
+{
+	PointCloudPtr sub_source(new PointCloudT);
+	PointCloudPtr temp_source(new PointCloudT);
+	PointCloudPtr temp_target(new PointCloudT);
+	get_random_points(tgt, aligned, probability);
+
+	// Used for accumulating the rigid transformation matrix
+	Matrix4f transform = transform.setIdentity();
+	transform_pointcloud(tgt, *temp_target, transform);
+	transform_pointcloud(src, *temp_source, transform);
+	Matrix3f rot;
+	Vector3f trans;
+	clock_t time;
+	get_random_points(*temp_source,*sub_source,probability);
+
+		// Apply the previous transformations to b so that it is positioned near
+		// the last accumulated points
+	extract_rotation_and_translation(transform, rot, trans);
+	transform_pointcloud(*sub_source, *sub_source, transform);
+
+	PointCloudPtr p(new PointCloudT);
+	PointCloudPtr q(new PointCloudT);
+
+		// Perform the specified number of icp iterations
+		for (int i = 0; i < iteration; ++i) {
+			cout << "ICP Iteration " << i << endl;
+			// Find the nearest neighbor pairs in the two point clouds
+			find_nearest_neighbors(aligned, *sub_source, *p, *q);
+
+				// Find the optimal rotation and translation matrix to transform b onto a
+			Matrix4f transformPtoQ;
+			rigid_transform_3D(*p, *q, transformPtoQ);
+
+			// Apply the rigid transformation to the b point cloud
+
+			transform_pointcloud(*sub_source, *sub_source, transformPtoQ);
+			transform_pointcloud(*temp_source, *temp_source, transformPtoQ);
+			transform *= transformPtoQ;
+		}
+
+		// Combine the two point clouds and save to disk
+		PointCloudPtr combined(new PointCloudT);
+		PointCloudPtr combinedSample(new PointCloudT);
+		*combined += *temp_target;
+		*combined += *temp_source;
+
+		*combinedSample += aligned;
+		*combinedSample += *sub_source;
+
+		temp_target = combined;
+		aligned = *combinedSample;
+
+		save_point_cloud("output.ply",*combined);
+
+		cout << "complete " << ((float)(clock() - time)) / CLOCKS_PER_SEC << endl;
+}
+
 //checked!
 void ICPAlgorithm::transform_pointcloud(const PointCloudT & cloud_in, PointCloudT & cloud_out, const Matrix4f & transform)
 {
