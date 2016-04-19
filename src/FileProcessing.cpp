@@ -29,19 +29,13 @@ FileProcessing::loadCloud(const string & filename, PCLPointCloud2 & cloud)
 }
 
 void
-FileProcessing::saveCloud(const string & filename, const PCLPointCloud2 & cloud, bool binary, bool use_camera)
+FileProcessing::save_point_cloud(const string & filename, const PointCloudT &cloud)
 {
-	TicToc tt;
-	tt.tic();
-
-	print_highlight("Saving ");
-	print_value("%s ", filename.c_str());
-
-	pcl::PLYWriter writer;
-	writer.write(filename, cloud, Eigen::Vector4f::Zero(), Eigen::Quaternionf::Identity(), binary, use_camera);
-
+	//TicToc tt;
+	//tt.tic();
+	savePLYFile(filename, cloud);
 	print_info("[done, ");
-	print_value("%g", tt.toc()); print_info(" ms : ");
+	//print_value("%g", tt.toc()); print_info(" ms : ");
 	print_value("%d", cloud.width * cloud.height);
 	print_info(" points]\n");
 }
@@ -107,6 +101,6 @@ FileProcessing::makePLYFromPointCloudSet(const string &filename, const PCLPointC
 	//	//saveCloud(file, pcl2, binary, use_camera);
 
 	//}
-	saveCloud("r.ply", r, binary, use_camera);
+	save_point_cloud("r.ply", Final);
 
 }

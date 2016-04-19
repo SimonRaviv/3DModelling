@@ -31,7 +31,6 @@ public:
 	FileProcessing file;
 	ICPAlgorithm icp_Alg;
 	PointCloudSet point_cloud_list;
-	int frameNumber;
 	bool pcd_flag;
 	bool ply_flag;
 	bool flag;
@@ -44,7 +43,6 @@ public:
 		this->ply_flag = true;
 		this->flag = true;
 		this->counter = 0;
-		this->frameNumber = 0;
 	}
 	~SimpleOpenNIViewer()
 	{
@@ -60,7 +58,6 @@ public:
 		pcl::removeNaNFromPointCloud(*cloud_in, *cloud_out, mapping);
 		this->point_cloud_list.it = this->point_cloud_list.set.insert(this->point_cloud_list.it, *cloud_out);
 		//pcl::io::savePLYFile("file" + std::to_string(frameNumber++) + ".ply", *cloud_out);
-		frameNumber++;
 		if (!viewer.wasStopped())
 			viewer.showCloud(cloud_out);
 	}
@@ -86,7 +83,7 @@ int main()
 {
 	//SimpleOpenNIViewer v;
 	//v.run();
-
+	FileProcessing fp;
 	vector<PointCloudT>::size_type j;
 	PCLPointCloud2 pcl2;
 	bool format = true;
@@ -109,11 +106,11 @@ int main()
 	PointCloudPtr merge(new PointCloudT);
 	*merge += *cloud;
 	*merge += *cloud2;
-	icp_Alg.save_point_cloud("before.ply", *merge);
+	fp.save_point_cloud("before.ply", *merge);
 	cout << "Start!!!" << endl;
-	icp_Alg.aligning_two_pointcloud(*cloud, *cloud2, *p, 10, 0.0001);
+	icp_Alg.aligning_two_pointcloud(*cloud, *cloud2, *p, 50, 0.1);
 	cout << "finished!!!" << endl;
 
-	//v.icp_Alg.Register(v.point_cloud_list.set,v.frameNumber);
+	//v.icp_Alg.Register(v.point_cloud_list.set);
 	return 0;
 }
