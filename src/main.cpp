@@ -86,7 +86,7 @@ int main()
 {
 	//SimpleOpenNIViewer v;
 	//v.run();
-	
+
 	vector<PointCloudT>::size_type j;
 	PCLPointCloud2 pcl2;
 	bool format = true;
@@ -95,60 +95,25 @@ int main()
 	//v.file.makePLYFromPointCloudSet("PointCloud", pcl2, format, use_camera, &v.point_cloud_list.set);
 
 	//for (j = 0; j != v.point_cloud_list.set.size(); j++)
-	//pcl::io::savePLYFile("file" + std::to_string(j) + ".ply", v.point_cloud_list.set[j]);
-	srand(time(NULL));
+	//pcl::io::savePLYFile("plyFiles\\file" + std::to_string(j) + ".ply", v.point_cloud_list.set[j]);
+
+
 
 	pcl::PointCloud<PointT>::Ptr cloud(new pcl::PointCloud<PointT>);
 	pcl::PointCloud<PointT>::Ptr cloud2(new pcl::PointCloud<PointT>);
-	// Generate pointcloud data
-	cloud->width = 5;
-	cloud->height = 1;
-	cloud->points.resize(cloud->width * cloud->height);
-	cloud2->width = 5;
-	cloud2->height = 1;
-	cloud2->points.resize(cloud2->width * cloud2->height);
+	loadPLYFile("plyFiles\\file29.ply", *cloud);
+	loadPLYFile("plyFiles\\file30.ply", *cloud2);
 
-	for (size_t i = 0; i < cloud->points.size(); ++i)
-	{
-		cloud->points[i].x = (1024* rand() / (RAND_MAX + 1))%30;
-		cloud->points[i].y = (1024 * rand() / (RAND_MAX + 1)) % 30;
-		cloud->points[i].z = (1024 * rand() / (RAND_MAX + 1)) % 30;
-		cloud->points[i].rgba = 0;
-	}
-	Matrix4f transformation_matrix = Matrix4f::Identity();
-		double theta = M_PI / 8;  // The angle of rotation in radians
-		transformation_matrix(0, 0) = 7.5*cos(theta);
-		transformation_matrix(0, 1) = -0.5*sin(theta);
-		transformation_matrix(1, 0) = 12*sin(theta);
-		transformation_matrix(1, 1) = 3.5*cos(theta);
-	
-		// A translation on Z axis (0.4 meters)
-		transformation_matrix(2, 3) = 0.4;
-	
-		// Display in terminal the transformation matrix
 	PointCloudPtr p(new PointCloudT);
 	ICPAlgorithm icp_Alg;
-	std::cout << "Applying this rigid transformation to: cloud_in -> cloud_icp" << std::endl;
-	icp_Alg.transform_pointcloud(*cloud, *cloud2, transformation_matrix);
-		
-		cout << "start icp:" << endl;
-		for (int i = 0; i < cloud->points.size(); i++)
-		{
-			cout << cloud->points[i] << endl;
-		}
-		for (int i = 0; i < cloud2->points.size(); i++)
-		{
-			cout << cloud2->points[i] << endl;
-		}
-		
-		icp_Alg.aligning_two_pointcloud(*cloud, *cloud2, *p, 5, 1);
-		cout << "finished!!!" << endl;
-		cout << "aligned points:" << endl;
-		for (int i = 0; i < p->points.size(); i++)
-		{
-			cout << p->points[i] << endl;
-		}
-	
+	PointCloudPtr merge(new PointCloudT);
+	*merge += *cloud;
+	*merge += *cloud2;
+	icp_Alg.save_point_cloud("before.ply", *merge);
+	cout << "Start!!!" << endl;
+	icp_Alg.aligning_two_pointcloud(*cloud, *cloud2, *p, 10, 0.0001);
+	cout << "finished!!!" << endl;
+
 	//v.icp_Alg.Register(v.point_cloud_list.set,v.frameNumber);
 	return 0;
 }

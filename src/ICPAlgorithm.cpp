@@ -72,7 +72,8 @@ void ICPAlgorithm::aligning_two_pointcloud(const PointCloudT & src, const PointC
 	transform_pointcloud(src, *temp_source, transform);
 	Matrix3f rot;
 	Vector3f trans;
-	clock_t time;
+	pcl::console::TicToc time;
+	time.tic();
 	get_random_points(*temp_source,*sub_source,probability);
 
 		// Apply the previous transformations to b so that it is positioned near
@@ -100,7 +101,7 @@ void ICPAlgorithm::aligning_two_pointcloud(const PointCloudT & src, const PointC
 			transform *= transformPtoQ;
 
 		}
-
+		cout << "complete " << time.toc() << " ms" << endl;
 		// Combine the two point clouds and save to disk
 		PointCloudPtr combined(new PointCloudT);
 		PointCloudPtr combinedSample(new PointCloudT);
@@ -115,7 +116,7 @@ void ICPAlgorithm::aligning_two_pointcloud(const PointCloudT & src, const PointC
 
 		save_point_cloud("output.ply",*combined);
 
-		cout << "complete " << ((float)(clock() - time)) / CLOCKS_PER_SEC << endl;
+		
 }
 
 //checked!
@@ -271,11 +272,11 @@ void ICPAlgorithm::find_nearest_neighbors(const PointCloudT & prev_frame, const 
 //checked!
 void ICPAlgorithm::save_point_cloud(const string & filename, const PointCloudT &cloud)
 {
-	TicToc tt;
-	tt.tic();
+	//TicToc tt;
+	//tt.tic();
 	savePLYFile(filename, cloud);
 	print_info("[done, ");
-	print_value("%g", tt.toc()); print_info(" ms : ");
+	//print_value("%g", tt.toc()); print_info(" ms : ");
 	print_value("%d", cloud.width * cloud.height);
 	print_info(" points]\n");
 }
@@ -326,6 +327,9 @@ void ICPAlgorithm::get_random_points(const PointCloudT & cloud_in, PointCloudT &
 	index.resize(j);
 	subsample.height = 1;
 	subsample.width = j;
+	
+	cout << "before subsample: " << cloud_in.points.size() << endl;
+	cout <<"subsample: " <<subsample.points.size() << endl;
 }
 //checked!
 void ICPAlgorithm::subtract_centroid(const PointCloudT &cloud_in, const Vector4f &centroid, MatrixXf &cloud_out)
