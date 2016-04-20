@@ -103,14 +103,15 @@ int main()
 
 	PointCloudPtr p(new PointCloudT);
 	ICPAlgorithm icp_Alg;
+	Matrix4f total_transformation;
 	PointCloudPtr merge(new PointCloudT);
 	*merge += *cloud;
 	*merge += *cloud2;
 	fp.save_point_cloud("before.ply", *merge);
 	cout << "Start!!!" << endl;
-	icp_Alg.aligning_two_pointcloud(*cloud, *cloud2, *p, 50, 0.1);
+	icp_Alg.aligning_two_pointcloud(*cloud, *cloud2, *p, 50, 0.1, total_transformation);
 	cout << "finished!!!" << endl;
-
+	cout << total_transformation << endl;
 	//v.icp_Alg.Register(v.point_cloud_list.set);
 	return 0;
 }
