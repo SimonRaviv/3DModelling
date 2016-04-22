@@ -51,15 +51,14 @@ public:
 	void cloud_cb_(PointCloudConstPtr &cloud)
 	{
 
-		PointCloudPtr cloud_out(new PointCloudT);
-		std::vector<int> mapping;
-		PointCloudPtr cloud_in(new PointCloudT);
-		copyPointCloud(*cloud, *cloud_in);
-		pcl::removeNaNFromPointCloud(*cloud_in, *cloud_out, mapping);
-		this->point_cloud_list.it = this->point_cloud_list.set.insert(this->point_cloud_list.it, *cloud_out);
+		//PointCloudPtr cloud_out(new PointCloudT);
+		//std::vector<int> mapping;
+		//PointCloudPtr cloud_in(new PointCloudT);
+		//copyPointCloud(*cloud, *cloud_in);
+		this->point_cloud_list.it = this->point_cloud_list.set.insert(this->point_cloud_list.it, *cloud);
 		//pcl::io::savePLYFile("file" + std::to_string(frameNumber++) + ".ply", *cloud_out);
 		if (!viewer.wasStopped())
-			viewer.showCloud(cloud_out);
+			viewer.showCloud(cloud);
 	}
 
 	void run()
@@ -81,37 +80,44 @@ public:
 
 int main()
 {
-	//SimpleOpenNIViewer v;
-	//v.run();
+	cout << "*** Video capturing started ***" << endl;
+	SimpleOpenNIViewer v;
+	v.run();
 	FileProcessing fp;
 	vector<PointCloudT>::size_type j;
-	PCLPointCloud2 pcl2;
-	bool format = true;
-	bool use_camera = true;
+	vector<int> mapping;
+	cout << "*** Video capturing stopped ***" << endl;
+	//PCLPointCloud2 pcl2;
+	//bool format = true;
+	//bool use_camera = true;
 
 	//v.file.makePLYFromPointCloudSet("PointCloud", pcl2, format, use_camera, &v.point_cloud_list.set);
 
 	//for (j = 0; j != v.point_cloud_list.set.size(); j++)
 	//pcl::io::savePLYFile("plyFiles\\file" + std::to_string(j) + ".ply", v.point_cloud_list.set[j]);
+	cout << "*** Filtering started ***" << endl;
+	for (j = 0; j != v.point_cloud_list.set.size(); j++)
+		removeNaNFromPointCloud(v.point_cloud_list.set[j], v.point_cloud_list.set[j], mapping);
+	cout << "*** Filtering stopped ***" << endl;
 
 
+	//pcl::PointCloud<PointT>::Ptr cloud(new pcl::PointCloud<PointT>);
+	//pcl::PointCloud<PointT>::Ptr cloud2(new pcl::PointCloud<PointT>);
+	//loadPLYFile("plyFiles\\file29.ply", *cloud);
+	//loadPLYFile("plyFiles\\file30.ply", *cloud2);
 
-	pcl::PointCloud<PointT>::Ptr cloud(new pcl::PointCloud<PointT>);
-	pcl::PointCloud<PointT>::Ptr cloud2(new pcl::PointCloud<PointT>);
-	loadPLYFile("plyFiles\\file29.ply", *cloud);
-	loadPLYFile("plyFiles\\file30.ply", *cloud2);
-
-	PointCloudPtr p(new PointCloudT);
+	//PointCloudPtr p(new PointCloudT);
 	ICPAlgorithm icp_Alg;
-	Matrix4f total_transformation;
-	PointCloudPtr merge(new PointCloudT);
-	*merge += *cloud;
-	*merge += *cloud2;
-	fp.save_point_cloud("before.ply", *merge);
-	cout << "Start!!!" << endl;
-	icp_Alg.aligning_two_pointcloud(*cloud, *cloud2, *p, 50, 0.1, total_transformation);
-	cout << "finished!!!" << endl;
-	cout << total_transformation << endl;
+	//Matrix4f total_transformation;
+	//PointCloudPtr merge(new PointCloudT);
+	//*merge += *cloud;
+	//*merge += *cloud2;
+	//fp.save_point_cloud("before.ply", *merge);
+	//cout << "Start!!!" << endl;
+	//icp_Alg.aligning_two_pointcloud(*cloud, *cloud2, *p, 50, 0.1, total_transformation);
+	//cout << "finished!!!" << endl;
+	//cout << total_transformation << endl;
 	//v.icp_Alg.Register(v.point_cloud_list.set);
+	icp_Alg.build_3d_map(v.point_cloud_list.set, 50, 0.05);
 	return 0;
 }

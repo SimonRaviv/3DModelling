@@ -61,7 +61,8 @@ void ICPAlgorithm::Register(vector<PointCloudT> &clouds)
 
 void ICPAlgorithm::build_3d_map(vector<PointCloudT>& clouds, int iteration, double probability)
 {
-	PointCloudPtr result(new PointCloudT);
+	PointCloudPtr result_show(new PointCloudT);
+	PointCloudT result;
 	PointCloudPtr target(new PointCloudT);
 	PointCloudPtr source(new PointCloudT);
 	PointCloudPtr source_trans_PointCloud(new PointCloudT);
@@ -69,26 +70,40 @@ void ICPAlgorithm::build_3d_map(vector<PointCloudT>& clouds, int iteration, doub
 	FileProcessing fp;
 	visualization::CloudViewer viewer("PCL OpenNI Viewer");
 	last_transformation.setIdentity();
-	*result += clouds[0];
-	*source_trans_PointCloud = *result;
+	result += clouds[0];
+	//result_show.reset();
+	result_show->header = result.header;
+	result_show->points.resize(result.points.size());
+	*source_trans_PointCloud = result;
 	*target = clouds[0];
 	for (size_t i = 0; i < clouds.size(); i++)
 	{
+
 		*source = clouds[i + 1];
 		transform_pointcloud(*source, *source, last_transformation);
 		aligning_two_pointcloud(*source, *target, *source_trans_PointCloud, iteration, probability, last_transformation);
 		*target = *source_trans_PointCloud;
 
-		*result += *source_trans_PointCloud;
-		viewer.showCloud(result);
+		result += *source_trans_PointCloud;
+		*result_show = result;
+		viewer.showCloud(result_show);
+		PCLPointCloud2::Ptr cloud(new pcl::PCLPointCloud2());
+		PCLPointCloud2::Ptr cloud_filtered(new pcl::PCLPointCloud2());
+		toPCLPointCloud2(result, *cloud);
+		VoxelGrid<PCLPointCloud2> sor;
+		sor.setInputCloud(cloud);
+		sor.setLeafSize(0.005f, 0.005f, 0.005f);
+		sor.filter(*cloud_filtered);
+		pcl::fromPCLPointCloud2(*cloud_filtered, result);
 
 	}
-	fp.save_point_cloud("FullSciene.ply", *result);
+	//get_random_points(result, result, 0.01);
+	fp.save_point_cloud("FullSciene.ply", result);
 
 }
 
 //checked!
-void ICPAlgorithm::aligning_two_pointcloud(const PointCloudT & src, const PointCloudT & tgt, PointCloudT & aligned, int iteration, double probability,Matrix4f &total_transformation)
+void ICPAlgorithm::aligning_two_pointcloud(const PointCloudT & src, const PointCloudT & tgt, PointCloudT & aligned, int iteration, double probability, Matrix4f &total_transformation)
 {
 	PointCloudPtr sub_source(new PointCloudT);
 	PointCloudPtr temp_source(new PointCloudT);
@@ -311,7 +326,7 @@ void ICPAlgorithm::extract_rotation_and_translation(const Matrix4f &transformati
 //checked!
 void ICPAlgorithm::get_transform_matrix(const Matrix3f & rotation, const Vector3f & translation, Matrix4f &transformation)
 {
-	transformation.setIdentity();   
+	transformation.setIdentity();
 	transformation.block<3, 3>(0, 0) = rotation;
 	transformation.block<3, 1>(0, 3) = translation;
 }
@@ -356,7 +371,7 @@ void ICPAlgorithm::get_random_points(const PointCloudT & cloud_in, PointCloudT &
 //checked!
 void ICPAlgorithm::subtract_centroid(const PointCloudT &cloud_input, const Vector4f &centroid, MatrixXf &cloud_output)
 {
-	size_t points_number; 
+	size_t points_number;
 
 	points_number = cloud_input.points.size();
 	cloud_output = MatrixXf::Zero(4, points_number);        // initial the output matrix

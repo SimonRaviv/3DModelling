@@ -17,6 +17,7 @@
 #include <stdio.h>
 #include <sstream>
 #include <stdlib.h>
+#include <pcl/filters/voxel_grid.h>
 #include<ctime>
 
 
