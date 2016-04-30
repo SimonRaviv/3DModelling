@@ -7,56 +7,177 @@ ICPAlgorithm::ICPAlgorithm()
 ICPAlgorithm::~ICPAlgorithm()
 {
 }
-//TODO:
-void ICPAlgorithm::Register(vector<PointCloudT> &clouds)
+void ICPAlgorithm::register_with_previous_aligned(vector<PointCloudT> &clouds, int iteration, double probability)
 {
 
-	PointCloudPtr cloud_source_registered(new PointCloudT);
-	PointCloudPtr previous_trans_PointCloud(new PointCloudT);
-	PointCloudPtr result(new PointCloudT);
-	PointCloudPtr cloud_in(new PointCloudT);
-	PointCloudPtr cloud_out(new PointCloudT);
+	PointCloudPtr all(new PointCloudT);
+	PointCloudPtr previous(new PointCloudT);
+	PointCloudPtr previous_sample(new PointCloudT);
+	PointCloudPtr current(new PointCloudT);
+	PointCloudPtr current_sample(new PointCloudT);
+	Matrix4f Total_transformation;
+	float transformation_errQtoP = 0;
+	FileProcessing fp;
 	visualization::CloudViewer viewer("PCL OpenNI Viewer");
-	IterativeClosestPoint<PointT, PointT> icp;
 
-	cout << "Data loaded" << endl;
+	get_random_points(clouds[0], *previous, 1);
+	get_random_points(*previous, *all, 1);
+	get_random_points(*previous, *previous_sample, probability);
 
-	*result += clouds[0];
-	*previous_trans_PointCloud = *result;
-	for (size_t i = 0; i < clouds.size(); i++)
-	{
-		// Set the input source and target
-		*cloud_in = clouds[i + 1];
-		//*cloud_out = clouds[2];
-		icp.setInputCloud(cloud_in);
-		icp.setInputTarget(previous_trans_PointCloud);
-		// Set the max correspondence distance to 5cm (e.g., correspondences with higher distances will be ignored)
-		icp.setMaxCorrespondenceDistance(0.005);
-		// Set the maximum number of iterations (criterion 1)
-		//icp.setMaximumIterations(50);
-		// Set the transformation epsilon (criterion 2)
-		icp.setTransformationEpsilon(1e-11);
-		// Set the euclidean distance difference epsilon (criterion 3)
-		icp.setEuclideanFitnessEpsilon(0.5);
-		// Perform the alignment
-		icp.align(*cloud_source_registered);
-		*previous_trans_PointCloud = *cloud_source_registered;
-		cout << "ICP " "done !" << endl;
 
-		*result += *cloud_source_registered;
+	// Used for accumulating the rigid transformation matrix
+	Total_transformation.setIdentity();
 
-		viewer.showCloud(result);
+
+	for (int frame = 1; frame < clouds.size(); ++frame) {
+		pcl::console::TicToc time;
+		time.tic();
+		get_random_points(clouds[frame], *current, 1);
+		get_random_points(*current, *current_sample, probability);
+
+		// transfrom the the source with the last transformation so it will be near the aligned points.
+		transform_pointcloud(*current_sample, *current_sample, Total_transformation);
+		transform_pointcloud(*current, *current, Total_transformation);
+
+		cout << "**************************** Full scene done " << (double)frame / (double)(clouds.size() - 1) * 100 << "% ****************************" << endl;
+		// ICP STARTS
+		for (int i = 0; i < iteration; ++i) {
+			cout << "ICP Iteration " << i << endl;
+			// Find nearest neighbor usin kdtree of two point clouds.
+			PointCloudPtr p(new PointCloudT);
+			PointCloudPtr q(new PointCloudT);
+			find_nearest_neighbors(*previous_sample, *current_sample, *p, *q);
+
+			Matrix4f transformation;
+			// getting the  transformation matrix from current frame to the previous frame.
+			compute_rigid_transformation(*q, *p, transformation);
+			cout << transformation << endl;
+			//calculating MSE.
+			transformation_errQtoP = 0;
+			for (size_t j = 0; j < q->points.size(); ++j)
+				transformation_errQtoP += squaredEuclideanDistance(p->points[j], q->points[j]);
+			transformation_errQtoP = transformation_errQtoP / q->points.size();
+			cout << "Q to P transformation err " << transformation_errQtoP << endl;
+
+			// transform source to target given the tranformation.
+			// Q'=Q*R+T
+			transform_pointcloud(*current_sample, *current_sample, transformation);
+			transform_pointcloud(*current, *current, transformation);
+			// updating total transformation.
+			Total_transformation *= transformation;
+
+			if (transformation_errQtoP<0.00003)
+				break;
+		}
+		cout << "complete " << time.toc() << " ms" << endl;
+		// merging two pointclouds.
+		*previous = *current;
+		*previous_sample = *current_sample;
+
+		*all += *current;
+
+		viewer.showCloud(all);
+		PCLPointCloud2::Ptr cloud(new pcl::PCLPointCloud2());
+		PCLPointCloud2::Ptr cloud_filtered(new pcl::PCLPointCloud2());
+		toPCLPointCloud2(*all, *cloud);
+		VoxelGrid<PCLPointCloud2> sor;
+		sor.setInputCloud(cloud);
+		sor.setLeafSize(0.005f, 0.005f, 0.005f);
+		sor.filter(*cloud_filtered);
+		pcl::fromPCLPointCloud2(*cloud_filtered, *all);
+
 
 	}
-	pcl::io::savePLYFile("C:\\3DModelling\\Build\\Final.ply", *result);
+	cout << "**************************** Writing the results ****************************" << endl;
+	fp.save_point_cloud("FullSciene.ply", *all);
+}
+
+void ICPAlgorithm::register_with_result(vector<PointCloudT> &clouds, int iteration, double probability)
+{
+
+	PointCloudPtr previous_frameS(new PointCloudT);
+	PointCloudPtr all_samples(new PointCloudT);
+	PointCloudPtr current(new PointCloudT);
+	PointCloudPtr current_sample(new PointCloudT);
+	Matrix4f Total_transformation;
+	float transformation_errQtoP = 0;
+	FileProcessing fp;
+	visualization::CloudViewer viewer("PCL OpenNI Viewer");
+
+	get_random_points(clouds[0], *previous_frameS, 1);
+	get_random_points(*previous_frameS, *all_samples, probability);
+
+	// Used for accumulating the rigid transformation matrix
+	Total_transformation.setIdentity();
 
 
-	cout << "File saved !" << endl;
+	for (int frame = 1; frame < clouds.size(); ++frame) {
+		pcl::console::TicToc time;
+		time.tic();
+		get_random_points(clouds[frame], *current, 1);
+		get_random_points(*current, *current_sample, probability);
 
-	// Obtain the transformation that aligned cloud_source to cloud_source_registered
-	Eigen::Matrix4f transformation = icp.getFinalTransformation();
+		// transfrom the the source with the last transformation so it will be near the aligned points.
+		transform_pointcloud(*current_sample, *current_sample, Total_transformation);
+		transform_pointcloud(*current, *current, Total_transformation);
 
-	cout << transformation << endl;
+		cout << "**************************** Full scene done " << (double)frame/(double)(clouds.size()-1)*100 <<"% ****************************"<< endl;
+		// ICP STARTS
+		for (int i = 0; i < iteration; ++i) {
+			cout << "ICP Iteration " << i << endl;
+			// Find nearest neighbor usin kdtree of two point clouds.
+			PointCloudPtr p(new PointCloudT);
+			PointCloudPtr q(new PointCloudT);
+			find_nearest_neighbors(*all_samples, *current_sample, *p, *q);
+
+			Matrix4f transformation;
+			// getting the  transformation matrix from current frame to the previous frame.
+			compute_rigid_transformation(*q,*p, transformation);
+			cout << transformation << endl;
+			//calculating MSE.
+			transformation_errQtoP = 0;
+			for (size_t j = 0; j < q->points.size(); ++j)
+				transformation_errQtoP += squaredEuclideanDistance(p->points[j], q->points[j]);
+			transformation_errQtoP = transformation_errQtoP / q->points.size();
+			cout << "Q to P transformation err " << transformation_errQtoP << endl;
+
+			// transform source to target given the tranformation.
+			// Q'=Q*R+T
+			transform_pointcloud(*current_sample, *current_sample, transformation);
+			transform_pointcloud(*current, *current, transformation);
+			// updating total transformation.
+			Total_transformation *= transformation;
+
+			//if (transformation_errQtoP<0.00004)
+			//	break;
+		}
+		cout << "complete " << time.toc() << " ms" << endl;
+		// merging two pointclouds.
+		PointCloudPtr merged(new PointCloudT);
+		*merged += *previous_frameS;
+		*merged += *current;
+		previous_frameS = merged;
+
+
+			viewer.showCloud(previous_frameS);
+			PCLPointCloud2::Ptr cloud(new pcl::PCLPointCloud2());
+			PCLPointCloud2::Ptr cloud_filtered(new pcl::PCLPointCloud2());
+			toPCLPointCloud2(*previous_frameS, *cloud);
+			VoxelGrid<PCLPointCloud2> sor;
+			sor.setInputCloud(cloud);
+			sor.setLeafSize(0.005f, 0.005f, 0.005f);
+			sor.filter(*cloud_filtered);
+			pcl::fromPCLPointCloud2(*cloud_filtered, *previous_frameS);
+
+		// merging subsamples.
+		PointCloudPtr merged_sample(new PointCloudT);
+		*merged_sample += *all_samples;
+		*merged_sample += *current_sample;
+		all_samples = merged_sample;
+
+	}
+	cout << "**************************** Writing the results ****************************" << endl;
+	fp.save_point_cloud("FullSciene.ply", *previous_frameS);
 }
 
 void ICPAlgorithm::build_3d_map(vector<PointCloudT>& clouds, int iteration, double probability)
@@ -76,10 +197,11 @@ void ICPAlgorithm::build_3d_map(vector<PointCloudT>& clouds, int iteration, doub
 	result_show->points.resize(result.points.size());
 	*source_trans_PointCloud = result;
 	*target = clouds[0];
-	for (size_t i = 0; i < clouds.size(); i++)
+	for (size_t i = 1; i < clouds.size(); i++)
 	{
+		cout << "**************************** Full scene done " << (double)i / (double)(clouds.size() - 1) * 100 << "% ****************************" << endl;
 
-		*source = clouds[i + 1];
+		*source = clouds[i];
 		transform_pointcloud(*source, *source, last_transformation);
 		aligning_two_pointcloud(*source, *target, *source_trans_PointCloud, iteration, probability, last_transformation);
 		*target = *source_trans_PointCloud;
@@ -108,6 +230,7 @@ void ICPAlgorithm::aligning_two_pointcloud(const PointCloudT & src, const PointC
 	PointCloudPtr sub_source(new PointCloudT);
 	PointCloudPtr temp_source(new PointCloudT);
 	PointCloudPtr temp_target(new PointCloudT);
+	float transformation_errQtoP = 100;
 	//get_random_points(tgt, aligned, probability);
 	get_random_points(tgt, aligned, 1);
 
@@ -116,21 +239,17 @@ void ICPAlgorithm::aligning_two_pointcloud(const PointCloudT & src, const PointC
 
 	transform_pointcloud(tgt, *temp_target, total_transformation);
 	transform_pointcloud(src, *temp_source, total_transformation);
-	Matrix3f rot;
-	Vector3f trans;
 	pcl::console::TicToc time;
 	time.tic();
 	get_random_points(*temp_source, *sub_source, probability);
-	extract_rotation_and_translation(total_transformation, rot, trans);
-	// Apply the previous transformations to b so that it is positioned near
-	// the last accumulated points
+	// transfrom the the source with the last transformation so it will be near the aligned points.
 	transform_pointcloud(*sub_source, *sub_source, total_transformation);
 
 	PointCloudPtr p(new PointCloudT);
 	PointCloudPtr q(new PointCloudT);
 
 	// ICP iteration START here
-	for (int i = 0; i < iteration; ++i) {
+	for (int i = 0; transformation_errQtoP>0.00002 && i<iteration; ++i) {
 		cout << "ICP Iteration " << i << endl;
 		// Find nearest neighbor usin kdtree of two point clouds.
 		find_nearest_neighbors(aligned, *sub_source, *p, *q);
@@ -139,6 +258,11 @@ void ICPAlgorithm::aligning_two_pointcloud(const PointCloudT & src, const PointC
 		Matrix4f transformQtoP;
 		compute_rigid_transformation(*q, *p, transformQtoP);
 		cout << transformQtoP << endl;
+		transformation_errQtoP = 0;
+		for (size_t j = 0; j < q->points.size(); ++j)
+			transformation_errQtoP += squaredEuclideanDistance(p->points[j], q->points[j]);
+		transformation_errQtoP = transformation_errQtoP / q->points.size();
+		cout << "Q to P transformation err " << transformation_errQtoP << endl;
 
 		// transform source to target given the tranformation.
 		// Q'=Q*R+T
@@ -146,6 +270,8 @@ void ICPAlgorithm::aligning_two_pointcloud(const PointCloudT & src, const PointC
 		transform_pointcloud(*temp_source, *temp_source, transformQtoP);
 		// updating the total transformation.
 		total_transformation *= transformQtoP;
+		//if (transformation_errQtoP<0.00003)
+		//	break;
 
 	}
 	cout << "complete " << time.toc() << " ms" << endl;

@@ -117,7 +117,9 @@ int main()
 	//icp_Alg.aligning_two_pointcloud(*cloud, *cloud2, *p, 50, 0.1, total_transformation);
 	//cout << "finished!!!" << endl;
 	//cout << total_transformation << endl;
-	//v.icp_Alg.Register(v.point_cloud_list.set);
-	icp_Alg.build_3d_map(v.point_cloud_list.set, 50, 0.05);
+
+	icp_Alg.register_with_result(v.point_cloud_list.set, 30, 0.05);
+	//icp_Alg.build_3d_map(v.point_cloud_list.set, 50, 0.1);
+	//icp_Alg.register_with_previous_aligned(v.point_cloud_list.set, 30, 0.1);
 	return 0;
 }
