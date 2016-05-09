@@ -20,6 +20,7 @@ public:
 	void get_random_points(const PointCloudT &cloud_in, PointCloudT &subsample, double probability);
 	void subtract_centroid(const PointCloudT &cloud_input, const Vector4f &centroid, MatrixXf &cloud_output);
 	void calculate_centroid(const PointCloudT &cloud_input, Vector4f &centroid);
+	void filter_points_using_reference_frame(const PointCloudT &cloud_reference, const PointCloudT &cloud_input, PointCloudT &cloud_out);
 
 private:
 

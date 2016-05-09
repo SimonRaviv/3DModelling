@@ -154,8 +154,11 @@ void ICPAlgorithm::register_with_result(vector<PointCloudT> &clouds, int iterati
 		cout << "complete " << time.toc() << " ms" << endl;
 		// merging two pointclouds.
 		PointCloudPtr merged(new PointCloudT);
+		PointCloudPtr current_filtered(new PointCloudT);
 		*merged += *previous_frameS;
-		*merged += *current;
+		filter_points_using_reference_frame(*merged, *current, *current_filtered);
+		*merged += *current_filtered;
+		//	*merged_sample += *current;
 		previous_frameS = merged;
 
 
@@ -165,16 +168,19 @@ void ICPAlgorithm::register_with_result(vector<PointCloudT> &clouds, int iterati
 			toPCLPointCloud2(*previous_frameS, *cloud);
 			VoxelGrid<PCLPointCloud2> sor;
 			sor.setInputCloud(cloud);
+		//	sor.setLeafSize(0.09f, 0.09f, 0.09f);
 			sor.setLeafSize(0.005f, 0.005f, 0.005f);
 			sor.filter(*cloud_filtered);
 			pcl::fromPCLPointCloud2(*cloud_filtered, *previous_frameS);
 
 		// merging subsamples.
 		PointCloudPtr merged_sample(new PointCloudT);
+		PointCloudPtr current_sample_filtered(new PointCloudT);
 		*merged_sample += *all_samples;
-		*merged_sample += *current_sample;
+		filter_points_using_reference_frame(*merged_sample, *current_sample, *current_sample_filtered);
+		*merged_sample += *current_sample_filtered;
+			//*merged_sample += *current_sample;
 		all_samples = merged_sample;
-
 	}
 	cout << "**************************** Writing the results ****************************" << endl;
 	fp.save_point_cloud("FullSciene.ply", *previous_frameS);
@@ -206,6 +212,10 @@ void ICPAlgorithm::build_3d_map(vector<PointCloudT>& clouds, int iteration, doub
 		aligning_two_pointcloud(*source, *target, *source_trans_PointCloud, iteration, probability, last_transformation);
 		*target = *source_trans_PointCloud;
 
+		//PointCloudPtr current_sample_filtered(new PointCloudT);
+		//filter_points_using_reference_frame(result, *source_trans_PointCloud, *current_sample_filtered);
+		//result += *current_sample_filtered;
+
 		result += *source_trans_PointCloud;
 		*result_show = result;
 		viewer.showCloud(result_show);
@@ -214,6 +224,7 @@ void ICPAlgorithm::build_3d_map(vector<PointCloudT>& clouds, int iteration, doub
 		toPCLPointCloud2(result, *cloud);
 		VoxelGrid<PCLPointCloud2> sor;
 		sor.setInputCloud(cloud);
+		//sor.setLeafSize(0.09f, 0.09f, 0.09f);
 		sor.setLeafSize(0.005f, 0.005f, 0.005f);
 		sor.filter(*cloud_filtered);
 		pcl::fromPCLPointCloud2(*cloud_filtered, result);
@@ -355,6 +366,7 @@ void ICPAlgorithm::compute_rigid_transformation(const PointCloudT &source, const
 	transformation.block <3, 1>(0, 3) = centroid_target.head<3>() - rotated_centroid;
 }
 //checked!
+//TODO: KDTREE EMPTY TEST
 void ICPAlgorithm::find_nearest_neighbors(const PointCloudT & prev_frame, const PointCloudT & curr_frame, PointCloudT & p, PointCloudT & q)
 {
 	int K = 1;
@@ -519,4 +531,63 @@ void ICPAlgorithm::calculate_centroid(const PointCloudT &cloud_input, Vector4f &
 		centroid += cloud_input.points[i].getVector4fMap();
 	centroid[3] = 0; //reset the forth dimention
 	centroid = centroid / cloud_input.points.size();
+}
+
+void ICPAlgorithm::filter_points_using_reference_frame(const PointCloudT & cloud_reference, const PointCloudT & cloud_input, PointCloudT & cloud_out)
+{
+	int j = 0;
+	std::vector<int> index;
+	double min_x, max_x, min_y, max_y,delta;
+	delta = 0.1;
+	cloud_out.is_dense = true; // there are non NANs in the subsample cloud.
+
+							   // initial the subsample pointcloud if both pointcloud are not the same
+	if (&cloud_input != &cloud_out)
+	{
+		cloud_out.header = cloud_input.header;
+		cloud_out.points.resize(cloud_input.points.size());
+	}
+	// initialize the index size
+	index.resize(cloud_input.points.size());
+	srand(time(NULL));
+	min_x = 100.0;
+	min_y = 100.0;
+	max_x = -100.0;
+	max_y = -100.0;
+
+	for (size_t i = 0; i < cloud_reference.points.size(); ++i)
+	{
+
+		if (cloud_reference.points[i].x < min_x)
+			min_x = cloud_reference.points[i].x;
+		if (cloud_reference.points[i].y < min_y)
+			min_y = cloud_reference.points[i].y;
+
+		if (cloud_reference.points[i].x > max_x)
+			max_x = cloud_reference.points[i].x;
+		if (cloud_reference.points[i].y > max_y)
+			max_y = cloud_reference.points[i].y;
+
+	}
+	
+	for (size_t i = 0; i < cloud_input.points.size(); ++i)
+	{
+
+		if (cloud_input.points[i].x>= max_x- delta || cloud_input.points[i].y >= max_y - delta || cloud_input.points[i].x <= min_x + delta || cloud_input.points[i].y <= min_y + delta)
+		{
+			cloud_out.points[j] = cloud_input.points[i];
+			index[j] = i;
+			j++;
+		}
+
+	}
+
+	// update subsample to rigth size
+	cloud_out.points.resize(j);
+	index.resize(j);
+	cloud_out.height = 1;
+	cloud_out.width = j;
+	cout << "refernce model: " << cloud_reference.points.size() << endl;
+	cout << "transformed cloud size: " << cloud_input.points.size() << endl;
+	cout << "filtered points size: " << cloud_out.points.size() << endl;
 }
