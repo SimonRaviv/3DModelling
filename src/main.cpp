@@ -1,10 +1,7 @@
-
+//
 //#include "3DModellingH.h"
 //#include "FileProcessingH.h"
 //#include "ICPAlgorithm.h"
-//
-//#include <windows.h>
-//#include <malloc.h>
 //
 //class PointCloudSet
 //{
