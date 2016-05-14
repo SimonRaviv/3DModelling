@@ -76,6 +76,7 @@ class SimpleOpenNIViewer
 
 };
 SimpleOpenNIViewer *SimpleOpenNIViewer::s_instance = 0;
+int rigthTimeClicked =1;
 HWND hwnd, recordButton, stopRecordButton, build3dmodelbutton;
 //HINSTANCE hInstance;
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
@@ -127,7 +128,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			hwnd, (HMENU)2, NULL, NULL);
 
 		build3dmodelbutton = CreateWindow("button", "build the sciene",
-			WS_VISIBLE | WS_CHILD | WS_BORDER,
+			WS_VISIBLE | WS_CHILD | WS_BORDER ,
 			330, 160, 120, 40,
 			hwnd, (HMENU)3, NULL, NULL);
 		break;
@@ -143,7 +144,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		{
 		case 1:
 		{
-			
+			if (rigthTimeClicked == 1)
+			{
 			FileProcessing fp;
 			vector<PointCloudT>::size_type j;
 			vector<int> mapping;
@@ -156,19 +158,30 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			for (j = 0; j != SimpleOpenNIViewer::instance()->point_cloud_list.set.size(); j++)
 				removeNaNFromPointCloud(SimpleOpenNIViewer::instance()->point_cloud_list.set[j], SimpleOpenNIViewer::instance()->point_cloud_list.set[j], mapping);
 			cout << "*** Filtering stopped ***" << endl;
+			rigthTimeClicked =2;
+			}
 
 			break;
 		}
 		case 2:
 		{
+			if (rigthTimeClicked == 2)
+			{
 			SimpleOpenNIViewer::instance()->counter = 0;
 			SimpleOpenNIViewer::instance()->camera->stop();
+			rigthTimeClicked = 3;
+			}
 			break;
 		}
 		case 3:
 		{
+			if (rigthTimeClicked == 3)
+			{
+
 			ICPAlgorithm icp_Alg;
 			icp_Alg.register_with_result(SimpleOpenNIViewer::instance()->point_cloud_list.set, 20, 0.05);
+
+			}
 			break;
 		}
 		default:
