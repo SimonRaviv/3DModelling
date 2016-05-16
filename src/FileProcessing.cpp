@@ -1,4 +1,3 @@
-#include "3DModellingH.h"
 #include "FileProcessingH.h"
 
 FileProcessing::FileProcessing()
