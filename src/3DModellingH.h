@@ -1,4 +1,3 @@
-#include <pcl/io/openni2_grabber.h>
 #include <pcl/visualization/cloud_viewer.h>
 #include <iostream>
 #include <pcl/io/ply/ply.h>

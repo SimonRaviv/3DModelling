@@ -66,7 +66,7 @@ void ICPAlgorithm::register_with_previous_aligned(vector<PointCloudT> &clouds, i
 			// updating total transformation.
 			Total_transformation *= transformation;
 
-			if (transformation_errQtoP<0.00003)
+			if (transformation_errQtoP < 0.00003)
 				break;
 		}
 		cout << "complete " << time.toc() << " ms" << endl;
@@ -121,7 +121,7 @@ void ICPAlgorithm::register_with_result(vector<PointCloudT> &clouds, int iterati
 		transform_pointcloud(*current_sample, *current_sample, Total_transformation);
 		transform_pointcloud(*current, *current, Total_transformation);
 
-		cout << "**************************** Full scene done " << (double)frame/(double)(clouds.size()-1)*100 <<"% ****************************"<< endl;
+		cout << "**************************** Full scene done " << (double)frame / (double)(clouds.size() - 1) * 100 << "% ****************************" << endl;
 		// ICP STARTS
 		for (int i = 0; i < iteration; ++i) {
 			cout << "ICP Iteration " << i << endl;
@@ -132,7 +132,7 @@ void ICPAlgorithm::register_with_result(vector<PointCloudT> &clouds, int iterati
 
 			Matrix4f transformation;
 			// getting the  transformation matrix from current frame to the previous frame.
-			compute_rigid_transformation(*q,*p, transformation);
+			compute_rigid_transformation(*q, *p, transformation);
 			cout << transformation << endl;
 			//calculating MSE.
 			transformation_errQtoP = 0;
@@ -162,16 +162,16 @@ void ICPAlgorithm::register_with_result(vector<PointCloudT> &clouds, int iterati
 		previous_frameS = merged;
 
 
-			viewer.showCloud(previous_frameS);
-			PCLPointCloud2::Ptr cloud(new pcl::PCLPointCloud2());
-			PCLPointCloud2::Ptr cloud_filtered(new pcl::PCLPointCloud2());
-			toPCLPointCloud2(*previous_frameS, *cloud);
-			VoxelGrid<PCLPointCloud2> sor;
-			sor.setInputCloud(cloud);
+		viewer.showCloud(previous_frameS);
+		PCLPointCloud2::Ptr cloud(new pcl::PCLPointCloud2());
+		PCLPointCloud2::Ptr cloud_filtered(new pcl::PCLPointCloud2());
+		toPCLPointCloud2(*previous_frameS, *cloud);
+		VoxelGrid<PCLPointCloud2> sor;
+		sor.setInputCloud(cloud);
 		//	sor.setLeafSize(0.09f, 0.09f, 0.09f);
-			sor.setLeafSize(0.005f, 0.005f, 0.005f);
-			sor.filter(*cloud_filtered);
-			pcl::fromPCLPointCloud2(*cloud_filtered, *previous_frameS);
+		sor.setLeafSize(0.005f, 0.005f, 0.005f);
+		sor.filter(*cloud_filtered);
+		pcl::fromPCLPointCloud2(*cloud_filtered, *previous_frameS);
 
 		// merging subsamples.
 		PointCloudPtr merged_sample(new PointCloudT);
@@ -179,7 +179,7 @@ void ICPAlgorithm::register_with_result(vector<PointCloudT> &clouds, int iterati
 		*merged_sample += *all_samples;
 		filter_points_using_reference_frame(*merged_sample, *current_sample, *current_sample_filtered);
 		*merged_sample += *current_sample_filtered;
-			//*merged_sample += *current_sample;
+		//*merged_sample += *current_sample;
 		all_samples = merged_sample;
 	}
 	cout << "**************************** Writing the results ****************************" << endl;
@@ -260,7 +260,7 @@ void ICPAlgorithm::aligning_two_pointcloud(const PointCloudT & src, const PointC
 	PointCloudPtr q(new PointCloudT);
 
 	// ICP iteration START here
-	for (int i = 0; transformation_errQtoP>0.00002 && i<iteration; ++i) {
+	for (int i = 0; transformation_errQtoP > 0.00002 && i < iteration; ++i) {
 		cout << "ICP Iteration " << i << endl;
 		// Find nearest neighbor usin kdtree of two point clouds.
 		find_nearest_neighbors(aligned, *sub_source, *p, *q);
@@ -537,7 +537,7 @@ void ICPAlgorithm::filter_points_using_reference_frame(const PointCloudT & cloud
 {
 	int j = 0;
 	std::vector<int> index;
-	double min_x, max_x, min_y, max_y,delta;
+	double min_x, max_x, min_y, max_y, delta;
 	delta = 0.1;
 	cloud_out.is_dense = true; // there are non NANs in the subsample cloud.
 
@@ -569,11 +569,11 @@ void ICPAlgorithm::filter_points_using_reference_frame(const PointCloudT & cloud
 			max_y = cloud_reference.points[i].y;
 
 	}
-	
+
 	for (size_t i = 0; i < cloud_input.points.size(); ++i)
 	{
 
-		if (cloud_input.points[i].x>= max_x- delta || cloud_input.points[i].y >= max_y - delta || cloud_input.points[i].x <= min_x + delta || cloud_input.points[i].y <= min_y + delta)
+		if (cloud_input.points[i].x >= max_x - delta || cloud_input.points[i].y >= max_y - delta || cloud_input.points[i].x <= min_x + delta || cloud_input.points[i].y <= min_y + delta)
 		{
 			cloud_out.points[j] = cloud_input.points[i];
 			index[j] = i;

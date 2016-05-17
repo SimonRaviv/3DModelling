@@ -5,19 +5,21 @@
 #include "FileProcessingH.h"
 #include "ICPAlgorithm.h"
 #include "PointCloudSet.h"
+#include "camera.h"
 
 
 class SimpleOpenNIViewer
 {
 	static SimpleOpenNIViewer *s_instance;
+
 	SimpleOpenNIViewer() : viewer("PCL OpenNI Viewer")
 	{
-		this->camera = new OpenNI2Grabber();
 		this->record_flag = -1;
 	}
+
 public:
 	visualization::CloudViewer viewer;
-	Grabber* camera;
+	Camera camera;
 	PointCloudSet point_cloud_list;
 	int record_flag;
 
@@ -44,14 +46,14 @@ public:
 		boost::function<void(PointCloudConstPtr&)> f =
 			boost::bind(&SimpleOpenNIViewer::cloud_cb_, this, _1);
 
-		this->camera->registerCallback(f);
+		camera.registerCallback(f);
 
-		this->camera->start();
+		camera.start();
 
 		while (!viewer.wasStopped())
 			boost::this_thread::sleep(boost::posix_time::seconds(1));
 
-		this->camera->stop();
+		camera.stop();
 	}
 
 };
@@ -146,7 +148,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		case 2:
 		{
 			SimpleOpenNIViewer::instance()->record_flag = 0;
-			SimpleOpenNIViewer::instance()->camera->stop();
+			SimpleOpenNIViewer::instance()->camera.stop();
 			EnableWindow(build3dmodelbutton, true);
 			EnableWindow(recordButton, true);
 			EnableWindow(stopRecordButton, false);

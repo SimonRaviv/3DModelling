@@ -7,7 +7,6 @@ public:
 	vector<PointCloudT>::iterator it;
 
 	PointCloudSet();
-
 	~PointCloudSet();
 
 private:
