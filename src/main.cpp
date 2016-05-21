@@ -8,11 +8,11 @@
 #include "camera.h"
 
 
-class SimpleOpenNIViewer
+class Main
 {
-	static SimpleOpenNIViewer *s_instance;
+	static Main *s_instance;
 
-	SimpleOpenNIViewer() : viewer("PCL OpenNI Viewer")
+	Main() : viewer("PCL OpenNI Viewer")
 	{
 		this->record_flag = -1;
 	}
@@ -20,13 +20,16 @@ class SimpleOpenNIViewer
 public:
 	visualization::CloudViewer viewer;
 	Camera camera;
+	ICPAlgorithm icp_Alg;
+	FileProcessing fp;
 	PointCloudSet point_cloud_list;
 	int record_flag;
 
-	static SimpleOpenNIViewer *instance()
+
+	static Main *instance()
 	{
 		if (!s_instance)
-			s_instance = new SimpleOpenNIViewer;
+			s_instance = new Main;
 		return s_instance;
 	}
 
@@ -44,7 +47,7 @@ public:
 	void run()
 	{
 		boost::function<void(PointCloudConstPtr&)> f =
-			boost::bind(&SimpleOpenNIViewer::cloud_cb_, this, _1);
+			boost::bind(&Main::cloud_cb_, this, _1);
 
 		camera.registerCallback(f);
 
@@ -59,7 +62,7 @@ public:
 };
 
 
-SimpleOpenNIViewer *SimpleOpenNIViewer::s_instance = 0;
+Main *Main::s_instance = 0;
 HWND hwnd, recordButton, stopRecordButton, build3dmodelbutton;
 //HINSTANCE hInstance;
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
@@ -109,7 +112,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			180, 160, 120, 40,
 			hwnd, (HMENU)2, NULL, NULL);
 		EnableWindow(stopRecordButton, false);
-		build3dmodelbutton = CreateWindow("button", "build the sciene",
+		build3dmodelbutton = CreateWindow("button", "build the scene",
 			WS_VISIBLE | WS_CHILD | WS_BORDER,
 			330, 160, 120, 40,
 			hwnd, (HMENU)3, NULL, NULL);
@@ -127,18 +130,16 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		{
 		case 1:
 		{
-
-			FileProcessing fp;
 			vector<PointCloudT>::size_type j;
 			vector<int> mapping;
 			cout << "*** Video capturing started ***" << endl;
 
-			SimpleOpenNIViewer::instance()->record_flag = 1;
-			SimpleOpenNIViewer::instance()->run();
+			Main::instance()->record_flag = 1;
+			Main::instance()->run();
 			cout << "*** Video capturing stopped ***" << endl;
 			cout << "*** Filtering started ***" << endl;
-			for (j = 0; j != SimpleOpenNIViewer::instance()->point_cloud_list.set.size(); j++)
-				removeNaNFromPointCloud(SimpleOpenNIViewer::instance()->point_cloud_list.set[j], SimpleOpenNIViewer::instance()->point_cloud_list.set[j], mapping);
+			for (j = 0; j != Main::instance()->point_cloud_list.set.size(); j++)
+				removeNaNFromPointCloud(Main::instance()->point_cloud_list.set[j], Main::instance()->point_cloud_list.set[j], mapping);
 			cout << "*** Filtering stopped ***" << endl;
 			EnableWindow(stopRecordButton, true);
 			EnableWindow(recordButton, false);
@@ -147,8 +148,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		}
 		case 2:
 		{
-			SimpleOpenNIViewer::instance()->record_flag = 0;
-			SimpleOpenNIViewer::instance()->camera.stop();
+			Main::instance()->record_flag = 0;
+			Main::instance()->camera.stop();
 			EnableWindow(build3dmodelbutton, true);
 			EnableWindow(recordButton, true);
 			EnableWindow(stopRecordButton, false);
@@ -156,9 +157,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		}
 		case 3:
 		{
-
-			ICPAlgorithm icp_Alg;
-			icp_Alg.register_with_result(SimpleOpenNIViewer::instance()->point_cloud_list.set, 20, 0.05);
+			Main::instance()->icp_Alg.register_with_result(Main::instance()->point_cloud_list.set, 20, 0.05);
 			EnableWindow(build3dmodelbutton, false);
 			EnableWindow(recordButton, false);
 			EnableWindow(stopRecordButton, false);
