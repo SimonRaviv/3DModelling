@@ -2,13 +2,12 @@
 #include <pcl/io/vtk_lib_io.h>
 #include <pcl/filters/voxel_grid.h>
 #include <pcl/visualization/pcl_visualizer.h>
-
+/*ICP Algorithm class */
 class ICPAlgorithm
 {
 public:
 	ICPAlgorithm();
 	~ICPAlgorithm();
-	void register_with_previous_aligned(vector<PointCloudT> &clouds, int iteration, double probability);
 	void register_with_result(vector<PointCloudT> &clouds, int iteration, double probability);
 	void build_3d_map(vector<PointCloudT> &clouds, int iteration, double probability);
 	void aligning_two_pointcloud(const PointCloudT &src, const PointCloudT &tgt, PointCloudT &aligned, int iteration, double probability, Matrix4f &total_transformation);

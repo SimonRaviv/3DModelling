@@ -7,7 +7,7 @@
 #include "PointCloudSet.h"
 #include "camera.h"
 
-
+/*Single tone class - point cloud viewer */
 class Main
 {
 	static Main *s_instance;
@@ -61,7 +61,7 @@ public:
 
 };
 
-
+/*Windows Main Function */
 Main *Main::s_instance = 0;
 HWND hwnd, recordButton, stopRecordButton, build3dmodelbutton;
 //HINSTANCE hInstance;
@@ -81,7 +81,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 
 	RegisterClass(&wc);
 	hwnd = CreateWindow(wc.lpszClassName, TEXT("Build 3D model using kinect "), WS_SYSMENU | WS_MINIMIZEBOX,
-		100, 100, 700, 270, 0, 0, hInstance, 0);
+		100, 100, 500, 200, 0, 0, hInstance, 0);
 
 	ShowWindow(hwnd, nCmdShow);
 	UpdateWindow(hwnd);
@@ -104,17 +104,17 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	{
 		recordButton = CreateWindow("button", "Record",
 			WS_VISIBLE | WS_CHILD | WS_BORDER,
-			30, 160, 120, 40,
+			30, 100, 120, 40,
 			hwnd, (HMENU)1, NULL, NULL);
 
-		stopRecordButton = CreateWindow("button", "Stop Record",
+		stopRecordButton = CreateWindow("button", "Stop record",
 			WS_VISIBLE | WS_CHILD | WS_BORDER,
-			180, 160, 120, 40,
+			180, 100, 120, 40,
 			hwnd, (HMENU)2, NULL, NULL);
 		EnableWindow(stopRecordButton, false);
-		build3dmodelbutton = CreateWindow("button", "build the scene",
+		build3dmodelbutton = CreateWindow("button", "Build the scene",
 			WS_VISIBLE | WS_CHILD | WS_BORDER,
-			330, 160, 120, 40,
+			330, 100, 120, 40,
 			hwnd, (HMENU)3, NULL, NULL);
 		EnableWindow(build3dmodelbutton, false);
 		break;
@@ -157,7 +157,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		}
 		case 3:
 		{
-			Main::instance()->icp_Alg.register_with_result(Main::instance()->point_cloud_list.set, 20, 0.05);
+			Main::instance()->icp_Alg.register_with_result(Main::instance()->point_cloud_list.set, 30, 0.08);
 			EnableWindow(build3dmodelbutton, false);
 			EnableWindow(recordButton, false);
 			EnableWindow(stopRecordButton, false);

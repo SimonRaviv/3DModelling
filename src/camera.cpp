@@ -1,5 +1,5 @@
 #include "camera.h"
-
+/*Camera Class*/
 Camera::Camera()
 {
 	this->camera = new OpenNI2Grabber();

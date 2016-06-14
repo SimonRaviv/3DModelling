@@ -7,7 +7,7 @@ FileProcessing::FileProcessing()
 FileProcessing::~FileProcessing()
 {
 }
-
+/*Saving pointcloud as ply format file. */
 void
 FileProcessing::save_point_cloud(const string & filename, const PointCloudT &cloud)
 {

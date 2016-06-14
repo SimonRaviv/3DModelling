@@ -1,5 +1,5 @@
 #include "3DModellingH.h"
-
+/*File processing class*/
 class FileProcessing
 {
 public:
