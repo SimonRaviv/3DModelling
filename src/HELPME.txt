@@ -1,0 +1,40 @@
+3D Modeling of indoor environments using Kinect
+===============================================
+
+
+Files:
+- camera.cpp: Interfacing with the Kinect.
+
+- main.cpp:   Captures frames from Kinect.
+	      User interface.
+
+- ICPAlgorithm.cpp:  performing ICP algorithm and reconstructing process.
+
+- PointCloudSet.cpp:  All pointclouds sets class.
+
+- FileProcessing.cpp:  Writing ply format file to disk.
+
+- 3DModellingH.h: The headers and typedefs of the project.
+
+- CMakeLists.txt: Cmake file for the compilition.
+
+
+Structure:
+
+- Initialize Point Cloud with a random sample of the first frame.
+- Initialize the global transformation with identity matrix.
+- For each next frame:
+	Extract a random sample from the frame for finding correspondences.
+	For each ICP iteration:
+		- Find correspondences
+			- Set the previous frame points in KD-tree.
+			- Get the closest correspondences.
+		- Calculate SVD to find  the best transformation.
+		- Update global transformation.
+		- Rotate current point cloud.
+	   	- Add transformed point cloud to the result (previous frame).
+	
+	Write the final result point cloud as ply file format in execution directory.
+Run:
+
+In order to run the program see the video that attached in this file.
