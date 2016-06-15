@@ -16,8 +16,6 @@ Files:
 
 - 3DModellingH.h: The headers and typedefs of the project.
 
-- CMakeLists.txt: Cmake file for the compilition.
-
 
 Structure:
 
