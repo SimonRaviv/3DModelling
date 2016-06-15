@@ -1,6 +1,6 @@
 #include "3DModellingH.h"
-/*point cloud set class*/
 
+/* point cloud set class */
 class PointCloudSet
 {
 public:

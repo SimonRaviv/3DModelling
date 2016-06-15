@@ -7,15 +7,12 @@ FileProcessing::FileProcessing()
 FileProcessing::~FileProcessing()
 {
 }
-/*Saving pointcloud as ply format file. */
+/* Saving point cloud as ply format file. */
 void
 FileProcessing::save_point_cloud(const string & filename, const PointCloudT &cloud)
 {
-	//TicToc tt;
-	//tt.tic();
 	savePLYFile(filename, cloud);
 	print_info("[done, ");
-	//print_value("%g", tt.toc()); print_info(" ms : ");
 	print_value("%d", cloud.width * cloud.height);
 	print_info(" points]\n");
 }

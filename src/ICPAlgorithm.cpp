@@ -7,8 +7,9 @@ ICPAlgorithm::ICPAlgorithm()
 ICPAlgorithm::~ICPAlgorithm()
 {
 }
-/*Method 1 of building the 3d model:
-it takes each frame and register it with the result*/
+
+/* Method 1 of building the 3d model:
+it takes each frame and register it with the result. */
 
 void ICPAlgorithm::register_with_result(vector<PointCloudT> &clouds, int iteration, double probability)
 {
@@ -25,7 +26,7 @@ void ICPAlgorithm::register_with_result(vector<PointCloudT> &clouds, int iterati
 	get_random_points(clouds[0], *previous_frameS, 1);
 	get_random_points(*previous_frameS, *all_samples, probability);
 
-	// Used for accumulating the rigid transformation matrix
+	// Used for accumulating the rigid transformation matrix.
 	Total_transformation.setIdentity();
 
 
@@ -35,48 +36,45 @@ void ICPAlgorithm::register_with_result(vector<PointCloudT> &clouds, int iterati
 		get_random_points(clouds[frame], *current, 1);
 		get_random_points(*current, *current_sample, probability);
 
-		// transfrom the the source with the last transformation so it will be near the aligned points.
+		// Transform the source with the last transformation, so it will be near the aligned points.
 		transform_pointcloud(*current_sample, *current_sample, Total_transformation);
 		transform_pointcloud(*current, *current, Total_transformation);
 
 		cout << "**************************** Full scene done " << (double)frame / (double)(clouds.size() - 1) * 100 << "% ****************************" << endl;
-		// ICP STARTS
+		// ICP STARTS.
 		for (int i = 0; i < iteration; ++i) {
 			cout << "ICP Iteration " << i << endl;
-			// Find nearest neighbor usin kdtree of two point clouds.
+			// Find nearest neighbor using kdtree of two point clouds.
 			PointCloudPtr p(new PointCloudT);
 			PointCloudPtr q(new PointCloudT);
 			find_nearest_neighbors(*all_samples, *current_sample, *p, *q);
 
 			Matrix4f transformation;
-			// getting the  transformation matrix from current frame to the previous frame.
+			// Getting the transformation matrix from current frame to the previous frame.
 			compute_rigid_transformation(*q, *p, transformation);
 			cout << transformation << endl;
-			//calculating MSE.
+			// Calculating MSE.
 			transformation_errQtoP = 0;
 			for (size_t j = 0; j < q->points.size(); ++j)
 				transformation_errQtoP += squaredEuclideanDistance(p->points[j], q->points[j]);
 			transformation_errQtoP = transformation_errQtoP / q->points.size();
 			cout << "Q to P transformation err " << transformation_errQtoP << endl;
 
-			// transform source to target given the tranformation.
+			// Transform source to target given the transformation.
 			// Q'=Q*R+T
 			transform_pointcloud(*current_sample, *current_sample, transformation);
 			transform_pointcloud(*current, *current, transformation);
-			// updating total transformation.
+			// Updating total transformation.
 			Total_transformation *= transformation;
 
-			//if (transformation_errQtoP<0.00004)
-			//	break;
 		}
 		cout << "complete " << time.toc() << " ms" << endl;
-		// merging two pointclouds.
+		// Merging two point clouds.
 		PointCloudPtr merged(new PointCloudT);
 		PointCloudPtr current_filtered(new PointCloudT);
 		*merged += *previous_frameS;
 		filter_points_using_reference_frame(*merged, *current, *current_filtered);
 		*merged += *current_filtered;
-		//	*merged_sample += *current;
 		previous_frameS = merged;
 
 
@@ -86,25 +84,23 @@ void ICPAlgorithm::register_with_result(vector<PointCloudT> &clouds, int iterati
 		toPCLPointCloud2(*previous_frameS, *cloud);
 		VoxelGrid<PCLPointCloud2> sor;
 		sor.setInputCloud(cloud);
-		//	sor.setLeafSize(0.09f, 0.09f, 0.09f);
 		sor.setLeafSize(0.005f, 0.005f, 0.005f);
 		sor.filter(*cloud_filtered);
 		pcl::fromPCLPointCloud2(*cloud_filtered, *previous_frameS);
 
-		// merging subsamples.
+		// Merging subsamples.
 		PointCloudPtr merged_sample(new PointCloudT);
 		PointCloudPtr current_sample_filtered(new PointCloudT);
 		*merged_sample += *all_samples;
 		filter_points_using_reference_frame(*merged_sample, *current_sample, *current_sample_filtered);
 		*merged_sample += *current_sample_filtered;
-		//*merged_sample += *current_sample;
 		all_samples = merged_sample;
 	}
 	cout << "**************************** Writing the results ****************************" << endl;
 	fp.save_point_cloud("FullSciene.ply", *previous_frameS);
 }
-/*Method 2 of building the 3d model: (not Used)
-adding the aligned pointcloud to the result */
+/* Method 2 of building the 3d model: (not Used)
+adding the aligned point cloud to the result. */
 void ICPAlgorithm::build_3d_map(vector<PointCloudT>& clouds, int iteration, double probability)
 {
 	PointCloudPtr result_show(new PointCloudT);
@@ -154,19 +150,18 @@ void ICPAlgorithm::build_3d_map(vector<PointCloudT>& clouds, int iteration, doub
 
 }
 
-/*Method 2 of building the 3d model: (not Used)
-this method takes each frame and register it with the previous frame , 
-we didnt use it since if the transformation wasnt good enough the mistake is accumelate very fast */
+/*Method 3 of building the 3d model: (not Used)
+This method takes each frame and register it with the previous frame, 
+we didn't use it since if the transformation wasn't good enough the mistake is accumulate very fast. */
 void ICPAlgorithm::aligning_two_pointcloud(const PointCloudT & src, const PointCloudT & tgt, PointCloudT & aligned, int iteration, double probability, Matrix4f &total_transformation)
 {
 	PointCloudPtr sub_source(new PointCloudT);
 	PointCloudPtr temp_source(new PointCloudT);
 	PointCloudPtr temp_target(new PointCloudT);
 	float transformation_errQtoP = 100;
-	//get_random_points(tgt, aligned, probability);
 	get_random_points(tgt, aligned, 1);
 
-	// for the total transformation matrix
+	// For the total transformation matrix.
 	total_transformation = total_transformation.setIdentity();
 
 	transform_pointcloud(tgt, *temp_target, total_transformation);
@@ -174,19 +169,19 @@ void ICPAlgorithm::aligning_two_pointcloud(const PointCloudT & src, const PointC
 	pcl::console::TicToc time;
 	time.tic();
 	get_random_points(*temp_source, *sub_source, probability);
-	// transfrom the the source with the last transformation so it will be near the aligned points.
+	// Transform the source with the last transformation so it will be near the aligned points.
 	transform_pointcloud(*sub_source, *sub_source, total_transformation);
 
 	PointCloudPtr p(new PointCloudT);
 	PointCloudPtr q(new PointCloudT);
 
-	// ICP iteration START here
+	// ICP iteration START here.
 	for (int i = 0; transformation_errQtoP > 0.00002 && i < iteration; ++i) {
 		cout << "ICP Iteration " << i << endl;
-		// Find nearest neighbor usin kdtree of two point clouds.
+		// Find nearest neighbor using kdtree of two point clouds.
 		find_nearest_neighbors(aligned, *sub_source, *p, *q);
 
-		// getting the  transformation matrix from current frame to the previous frame.
+		// Getting the  transformation matrix from current frame to the previous frame.
 		Matrix4f transformQtoP;
 		compute_rigid_transformation(*q, *p, transformQtoP);
 		cout << transformQtoP << endl;
@@ -196,7 +191,7 @@ void ICPAlgorithm::aligning_two_pointcloud(const PointCloudT & src, const PointC
 		transformation_errQtoP = transformation_errQtoP / q->points.size();
 		cout << "Q to P transformation err " << transformation_errQtoP << endl;
 
-		// transform source to target given the tranformation.
+		// Transform source to target given the transformation.
 		// Q'=Q*R+T
 		transform_pointcloud(*sub_source, *sub_source, transformQtoP);
 		transform_pointcloud(*temp_source, *temp_source, transformQtoP);
@@ -207,28 +202,28 @@ void ICPAlgorithm::aligning_two_pointcloud(const PointCloudT & src, const PointC
 
 	}
 	cout << "complete " << time.toc() << " ms" << endl;
-	// merging two pointclouds.
+	// Merging two point clouds.
 	PointCloudPtr combined(new PointCloudT);
 	*combined += *temp_target;
 	*combined += *temp_source;
 
-	//preparing the return value.
+	// Preparing the return value.
 
 	aligned = *temp_source;
-	//save the result as ply file.
+	// Save the result as ply file.
 
 	//FileProcessing fp;
 	//fp.save_point_cloud("output.ply", *combined);
 
 
 }
-/*The function transform a given pointcloud using a given transformation.*/
+/* The function transform a given point cloud using a given transformation. */
 void ICPAlgorithm::transform_pointcloud(const PointCloudT & in, PointCloudT & out, const Matrix4f & transformation)
 {
 	Matrix3f rotation;
 	Vector3f translation;
 
-	// initial the output pointcloud if both pointcloud are not the same
+	// Initial the output point cloud if both point cloud are not the same.
 	if (&in != &out)
 	{
 		out.header = in.header;
@@ -239,57 +234,56 @@ void ICPAlgorithm::transform_pointcloud(const PointCloudT & in, PointCloudT & ou
 		out.points.assign(in.points.begin(), in.points.end());
 	}
 
-	// extracting the translation and rotation matrix out of 4x4 Transformation Matrix.
+	// Extracting the translation and rotation matrix out of 4x4 Transformation Matrix.
 	extract_rotation_and_translation(transformation, rotation, translation);
-	// applying the transformation on the pointcloud.
+	// Applying the transformation on the point cloud.
 	for (size_t i = 0; i < out.points.size(); ++i)
 		out.points[i].getVector3fMap() = rotation * in.points[i].getVector3fMap() + translation;
 }
 
-/*The function compute the transformation of the source frame to the target frame and it returns the transformation.*/
-
+/* The function compute the transformation of the source frame to the target frame and it returns the transformation. */
 void ICPAlgorithm::compute_rigid_transformation(const PointCloudT &source, const PointCloudT &target, Matrix4f &transformation)
 {
 	Vector4f centroid_source, centroid_target;
 	MatrixXf subtracted_centroid_source, subtracted_centroid_target;
 	Matrix3f covarianse, U, V, rotation;
 	Vector3f rotated_centroid;
-	// initial the transformation as identity.
+	// Initial the transformation as identity.
 	transformation.setIdentity();
 
-	// find the centroids of the given pointcloud.
+	// Find the centroids of the given point cloud.
 	calculate_centroid(source, centroid_source);
 	calculate_centroid(target, centroid_target);
 
-	// eleminate the centroid from the pointclouds
+	// Eliminate the centroid from the point clouds
 	subtract_centroid(source, centroid_source, subtracted_centroid_source);
 
 	subtract_centroid(target, centroid_target, subtracted_centroid_target);
 
-	// compute Covarians matrix subtracted_mean_source * subtracted_mean_target'
+	// Compute Covariance matrix subtracted_mean_source * subtracted_mean_target'.
 	covarianse = (subtracted_centroid_source * subtracted_centroid_target.transpose()).topLeftCorner<3, 3>();
 
-	// apply SVD on covarians matrix.
+	// Apply SVD on Covariance matrix.
 	JacobiSVD<Matrix3f> SVD(covarianse, ComputeFullU | ComputeFullV);
 	U = SVD.matrixU();
 	V = SVD.matrixV();
 
-	//if reflection detected.
+	// If reflection detected.
 	if (U.determinant() * V.determinant() < 0)
 		for (int z = 0; z < 3; ++z)
 			V(z, 2) *= -1;
 
-	//The rotation matrix :𝑅 = 𝑉∗𝑈^𝑇
+	// The rotation matrix: 𝑅 = 𝑉∗𝑈^𝑇.
 	rotation = V * U.transpose();
 
 	// Return the correct transformation
 	transformation.topLeftCorner<3, 3>() = rotation;
 	rotated_centroid = rotation * centroid_source.head<3>();
-	//The translation matrix : 𝑡 =  𝑐𝑒𝑛𝑡𝑟𝑜𝑖𝑑_(𝑃^∗)− 𝑅∗𝑐𝑒𝑛𝑡𝑟𝑜𝑖𝑑_𝑄.
+	// The translation matrix: 𝑡 =  𝑐𝑒𝑛𝑡𝑟𝑜𝑖𝑑_(𝑃^∗)− 𝑅∗𝑐𝑒𝑛𝑡𝑟𝑜𝑖𝑑_𝑄.
 	transformation.block <3, 1>(0, 3) = centroid_target.head<3>() - rotated_centroid;
 }
 
-/*This function takes two pointclouds and it finds the closet point in order to find the corresponding points, using the kdtree data structure*/
+/* This function takes two point clouds and it finds the closet point in order to find the corresponding points, using the kdtree data structure. */
 
 void ICPAlgorithm::find_nearest_neighbors(const PointCloudT & prev_frame, const PointCloudT & curr_frame, PointCloudT & p, PointCloudT & q)
 {
@@ -379,20 +373,20 @@ void ICPAlgorithm::find_nearest_neighbors(const PointCloudT & prev_frame, const 
 	}
 
 }
-/*This function extract the rotation and the translation matrix out of 4x4 transformation matrix.*/
+/* This function extract the rotation and the translation matrix out of 4x4 transformation matrix. */
 void ICPAlgorithm::extract_rotation_and_translation(const Matrix4f &transformation, Matrix3f &rotation, Vector3f &translation)
 {
 	rotation = transformation.block<3, 3>(0, 0);
 	translation = transformation.block<3, 1>(0, 3);
 }
-/*This function build 4x4 transformation matrix given the rotation 3x3 matrix and the translation vector 3x1 .*/
+/* This function build 4x4 transformation matrix given the rotation 3x3 matrix and the translation vector 3x1. */
 void ICPAlgorithm::get_transform_matrix(const Matrix3f & rotation, const Vector3f & translation, Matrix4f &transformation)
 {
 	transformation.setIdentity();
 	transformation.block<3, 3>(0, 0) = rotation;
 	transformation.block<3, 1>(0, 3) = translation;
 }
-/*This function choose random points from the pointcloud with given probability, and it returns the subsample.*/
+/* This function choose random points from the point cloud with given probability, and it returns the subsample. */
 void ICPAlgorithm::get_random_points(const PointCloudT & cloud_in, PointCloudT & subsample, double probability)
 {
 	int j = 0;
@@ -400,13 +394,13 @@ void ICPAlgorithm::get_random_points(const PointCloudT & cloud_in, PointCloudT &
 
 	subsample.is_dense = true; // there are non NANs in the subsample cloud.
 
-	// initial the subsample pointcloud if both pointcloud are not the same
+	// Initial the subsample point cloud if both point cloud are not the same.
 	if (&cloud_in != &subsample)
 	{
 		subsample.header = cloud_in.header;
 		subsample.points.resize(cloud_in.points.size());
 	}
-	// initialize the index size
+	// Initialize the index size.
 	index.resize(cloud_in.points.size());
 	srand(time(NULL));
 	for (size_t i = 0; i < subsample.points.size(); ++i)
@@ -421,7 +415,7 @@ void ICPAlgorithm::get_random_points(const PointCloudT & cloud_in, PointCloudT &
 
 	}
 
-	// update subsample to rigth size
+	// Update subsample to correct size.
 	subsample.points.resize(j);
 	index.resize(j);
 	subsample.height = 1;
@@ -430,35 +424,35 @@ void ICPAlgorithm::get_random_points(const PointCloudT & cloud_in, PointCloudT &
 	cout << "before subsample: " << cloud_in.points.size() << endl;
 	cout << "subsample: " << subsample.points.size() << endl;
 }
-/*This function subtract the centroid of the pointcloud from each point in the given pointcloud*/
+/* This function subtract the centroid of the pointcloud from each point in the given point cloud */
 void ICPAlgorithm::subtract_centroid(const PointCloudT &cloud_input, const Vector4f &centroid, MatrixXf &cloud_output)
 {
 	size_t points_number;
 
 	points_number = cloud_input.points.size();
-	cloud_output = MatrixXf::Zero(4, points_number);        // initial the output matrix
+	cloud_output = MatrixXf::Zero(4, points_number);        // Initial the output matrix.
 
 	for (size_t i = 0; i < points_number; ++i)
 		cloud_output.block<4, 1>(0, i) = cloud_input.points[i].getVector4fMap() - centroid;
 
-	// reset the forth dimention
+	// Reset the forth dimension.
 	cloud_output.block(3, 0, 1, points_number).setZero();
 }
-/*This function calculate the centroid of the pointcloud*/
+/* This function calculate the centroid of the point cloud. */
 void ICPAlgorithm::calculate_centroid(const PointCloudT &cloud_input, Vector4f &centroid)
 {
-	centroid.setZero(); //initial centroid
-	if (cloud_input.points.empty()) // if cloud is empty
+	centroid.setZero(); //initial centroid.
+	if (cloud_input.points.empty()) // If cloud is empty.
 		return;
 
 	for (size_t i = 0; i < cloud_input.points.size(); ++i)
 		centroid += cloud_input.points[i].getVector4fMap();
-	centroid[3] = 0; //reset the forth dimention
+	centroid[3] = 0; // Reset the forth dimension.
 	centroid = centroid / cloud_input.points.size();
 }
 
-/*This function is responsible of merging the pointcloud together that 
-adds only the points which are not exist in a referance frame ,(its not used)*/
+/* This function is responsible of merging the point cloud together that 
+adds only the points which are not exist in a reference frame ,(its not used). */
 
 void ICPAlgorithm::filter_points_using_reference_frame(const PointCloudT & cloud_reference, const PointCloudT & cloud_input, PointCloudT & cloud_out)
 {
@@ -466,15 +460,15 @@ void ICPAlgorithm::filter_points_using_reference_frame(const PointCloudT & cloud
 	std::vector<int> index;
 	double min_x, max_x, min_y, max_y, delta;
 	delta = 0.1;
-	cloud_out.is_dense = true; // there are non NANs in the subsample cloud.
+	cloud_out.is_dense = true; // There are non NANs in the subsample cloud.
 
-							   // initial the subsample pointcloud if both pointcloud are not the same
+	// Initial the subsample point cloud if both point cloud are not the same.
 	if (&cloud_input != &cloud_out)
 	{
 		cloud_out.header = cloud_input.header;
 		cloud_out.points.resize(cloud_input.points.size());
 	}
-	// initialize the index size
+	// Initialize the index size.
 	index.resize(cloud_input.points.size());
 	srand(time(NULL));
 	min_x = 100.0;
@@ -509,7 +503,7 @@ void ICPAlgorithm::filter_points_using_reference_frame(const PointCloudT & cloud
 
 	}
 
-	// update subsample to rigth size
+	// Update subsample to correct size.
 	cloud_out.points.resize(j);
 	index.resize(j);
 	cloud_out.height = 1;

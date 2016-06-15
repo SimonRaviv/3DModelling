@@ -7,7 +7,7 @@
 #include "PointCloudSet.h"
 #include "camera.h"
 
-/*Single tone class - point cloud viewer */
+/* Single tone class - point cloud viewer */
 class Main
 {
 	static Main *s_instance;
@@ -75,7 +75,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	wc.lpszClassName = TEXT("Static Control");
 	wc.hInstance = hInstance;
 	wc.hbrBackground = GetSysColorBrush(COLOR_3DFACE);
-	wc.lpfnWndProc = WndProc; // error: undefined reference to `WndProc(HWND__*, unsigned int, unsigned int, long)@16'
+	wc.lpfnWndProc = WndProc;
 	wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
 	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
 
